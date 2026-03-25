@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickQuote — 견적서 생성기</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a2332;--primary:#2563eb;--ph:#1d4ed8;--pl:#eff6ff;
+  --bg:#f4f6f9;--white:#fff;--text:#1e293b;--sub:#64748b;--muted:#94a3b8;
+  --border:#e2e8f0;--bl:#f1f5f9;--green:#10b981;--red:#ef4444;--amber:#f59e0b;
+  --r:10px;
+}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);min-height:100vh;color:var(--text);font-size:14px}
+.prog-track{position:fixed;top:0;left:0;right:0;height:3px;background:var(--border);z-index:300}
+.prog-fill{height:100%;background:var(--primary);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.hdr{position:fixed;top:3px;left:0;right:0;height:56px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;z-index:200}
+.logo{font-size:16px;font-weight:800;color:var(--navy);letter-spacing:-.5px}.logo span{color:var(--primary)}
+.hdots{display:flex;gap:8px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s}
+.dot.done{background:var(--green)}.dot.active{background:var(--primary);transform:scale(1.4)}
+.layout{display:grid;grid-template-columns:1fr 400px;min-height:100vh;padding-top:59px}
+.step{display:none;flex-direction:column;justify-content:center;min-height:calc(100vh - 59px);padding:40px 60px;animation:sIn .3s ease}
+.step.active{display:flex}
+@keyframes sIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
+.snum{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:10px}
+.stitle{font-size:28px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:8px;letter-spacing:-.8px}
+.sdesc{font-size:14px;color:var(--sub);margin-bottom:28px;line-height:1.6}
+.fg{display:flex;flex-direction:column;gap:12px;max-width:460px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.flabel{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:5px;display:block}
+.finput{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;color:var(--text);background:var(--white);outline:none;transition:border-color .2s,box-shadow .2s}
+.finput:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.finput::placeholder{color:var(--muted)}
+
+/* 스타일 카드 */
+.scards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:500px}
+.scard{border:2px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .2s;background:var(--white);position:relative}
+.scard:hover{border-color:#93c5fd;transform:translateY(-2px);box-shadow:0 4px 16px rgba(37,99,235,.1)}
+.scard.sel{border-color:var(--primary);background:var(--pl)}
+.scard.sel::after{content:'✓';position:absolute;top:9px;right:11px;font-size:11px;font-weight:800;color:var(--primary)}
+.spbox{height:72px;border-radius:6px;margin-bottom:9px;overflow:hidden;border:1px solid var(--bl);background:#fff}
+.scard-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.scard-tag{font-size:11px;color:var(--muted)}
+.mp{padding:7px;display:flex;flex-direction:column;gap:3px}
+.mp-bar{height:3px;background:#2563eb;border-radius:2px;margin-bottom:5px}
+.mp-title{width:32px;height:6px;background:#1e293b;border-radius:2px;margin-bottom:4px}
+.mp-row{display:flex;gap:3px}
+.mp-cell{height:3px;border-radius:1px}
+.mp-bh{background:#1a2332;height:20px;padding:0 7px;display:flex;align-items:center;justify-content:space-between}
+.mp-dots{display:flex;gap:4px;margin-bottom:5px}
+.mp-dot{width:5px;height:5px;border-radius:50%}
+
+/* 품목 */
+.itbl{max-width:540px}
+.ihdr{display:grid;grid-template-columns:1fr 88px 68px 92px 30px;gap:8px;padding:8px 12px;background:var(--bl);border-radius:8px 8px 0 0;font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.04em}
+.irows{border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden}
+.irow{display:grid;grid-template-columns:1fr 88px 68px 92px 30px;gap:8px;padding:7px 12px;border-bottom:1px solid var(--bl);align-items:center;background:var(--white);animation:rIn .2s ease}
+.irow:last-child{border-bottom:none}
+@keyframes rIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.iinput{border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:13px;font-family:inherit;color:var(--text);background:var(--white);width:100%;outline:none;transition:border-color .2s}
+.iinput:focus{border-color:var(--primary)}
+.iinput.num{text-align:right}
+.itotal{font-size:13px;font-weight:600;color:var(--text);text-align:right}
+.idel{width:26px;height:26px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:5px;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.idel:hover{background:#fee2e2;color:var(--red)}
+.addbtn{display:flex;align-items:center;gap:6px;padding:9px 12px;color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;border:1.5px dashed #bfdbfe;border-radius:8px;background:none;margin-top:8px;width:100%;transition:all .2s;font-family:inherit}
+.addbtn:hover{background:var(--pl);border-color:var(--primary)}
+.taxbox{margin-top:12px;padding:14px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:8px;max-width:540px}
+.taxrow{display:flex;justify-content:space-between;font-size:13px;color:var(--sub);padding:3px 0}
+.taxrow.tot{font-size:15px;font-weight:700;color:var(--text);padding-top:8px;border-top:1px solid var(--border);margin-top:4px}
+.taxrow.tot .amt{color:var(--primary)}
+.tax-guide{margin-top:14px;padding-top:14px;border-top:1px solid var(--bl)}
+.tax-guide-q{font-size:13px;color:var(--sub);margin-bottom:10px;line-height:1.5}
+.tax-opts{display:flex;flex-direction:column;gap:7px}
+.tax-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;background:var(--white);transition:all .2s;font-family:inherit;text-align:left;width:100%}
+.tax-opt:hover{border-color:#93c5fd;background:var(--pl)}
+.tax-opt.sel{border-color:var(--primary);background:var(--pl)}
+.tax-opt-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.tax-opt-text strong{display:block;font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.tax-opt-text span{font-size:11px;color:var(--muted)}
+
+/* 메모 프리셋 */
+.preset-section{max-width:540px;margin-top:20px}
+.preset-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.preset-title{font-size:13px;font-weight:700;color:var(--text)}
+.preset-edit-badge{font-size:11px;font-weight:600;padding:3px 9px;background:#fef3c7;color:#92400e;border-radius:20px;border:1px solid #fde68a}
+.preset-hint{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.preset-list{display:flex;flex-direction:column;gap:6px}
+.pitem{border:1.5px solid var(--border);border-radius:8px;background:var(--white);cursor:pointer;transition:all .2s;overflow:hidden}
+.pitem:hover{border-color:#93c5fd}
+.pitem.on{border-color:var(--primary);background:var(--pl)}
+.pitem-row{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.pcheck{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;transition:all .2s;background:var(--white)}
+.pitem.on .pcheck{background:var(--primary);border-color:var(--primary)}
+.ptext-wrap{flex:1;min-width:0}
+.ptext{font-size:13px;color:var(--text);line-height:1.4;padding:2px 4px;border-radius:4px;cursor:text;transition:background .15s}
+.ptext:hover{background:rgba(37,99,235,.06)}
+.ptext:focus{outline:2px solid var(--primary);background:#fff;border-radius:4px}
+.pitem.on .ptext{color:#1d4ed8;font-weight:500}
+.edit-hint{font-size:10px;color:var(--primary);margin-top:2px;display:none}
+.pitem.on .edit-hint{display:block}
+.porder{display:flex;gap:3px;flex-shrink:0}
+.obtn{width:22px;height:20px;border:1px solid var(--border);border-radius:4px;background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--sub);transition:all .15s}
+.obtn:hover{background:var(--bl);border-color:var(--sub)}
+/* 직접입력 */
+.custom-input-row{display:flex;gap:8px;margin-top:6px;max-width:540px}
+.custom-input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:var(--white);outline:none;transition:border-color .2s}
+.custom-input:focus{border-color:var(--primary)}
+.custom-add-btn{padding:9px 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .2s}
+.custom-add-btn:hover{background:var(--ph)}
+
+/* 도장 */
+.stamp-section{max-width:540px;margin-top:20px}
+.stamp-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer}
+.stamp-toggle-row input{accent-color:var(--primary);width:16px;height:16px}
+.stamp-toggle-label{font-size:13px;font-weight:600;color:var(--text)}
+.stamp-body{display:none}
+.stamp-body.open{display:block}
+.stamp-desc{font-size:12px;color:var(--sub);margin-bottom:12px;line-height:1.5;padding:8px 12px;background:var(--bl);border-radius:7px}
+.stamp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.stamp-card{border:2px solid var(--border);border-radius:8px;padding:10px 6px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--white)}
+.stamp-card:hover{border-color:#93c5fd;transform:translateY(-2px)}
+.stamp-card.sel{border-color:var(--primary);background:var(--pl)}
+.stamp-card-name{font-size:10px;color:var(--sub);font-weight:600;text-align:center;line-height:1.3}
+.stamp-colors{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.sc-label{font-size:12px;font-weight:600;color:var(--sub)}
+.scol{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0}
+.scol.sel{border-color:var(--text);transform:scale(1.2)}
+.stamp-edit-note{font-size:11px;color:var(--muted);padding:7px 10px;background:var(--bl);border-radius:6px;line-height:1.5}
+
+/* 버튼 */
+.bgrp{display:flex;gap:10px;margin-top:24px}
+.bpri{padding:12px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.bpri:hover{background:var(--ph);transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.bback{padding:12px 18px;background:none;color:var(--sub);border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .2s}
+.bback:hover{border-color:var(--sub);color:var(--text)}
+
+/* 프리뷰 */
+.pvpanel{background:var(--white);border-left:1px solid var(--border);position:sticky;top:59px;height:calc(100vh - 59px);overflow-y:auto;display:flex;flex-direction:column}
+.pvhdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pvlabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.pvst{font-size:11px;font-weight:600;color:var(--sub)}
+.pvbody{padding:18px;flex:1}
+.doc{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:20px;position:relative;font-size:11px;min-height:560px}
+.doc-topbar{height:3px;border-radius:2px;margin-bottom:16px;background:var(--primary)}
+.doc-hblock{margin:-20px -20px 16px;padding:13px 20px;border-radius:8px 8px 0 0;background:var(--navy)}
+.doc-title-w{font-size:17px;font-weight:800;color:#fff}
+.doc-num-w{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px}
+.doc-adots{display:flex;gap:5px;margin-bottom:11px}
+.doc-adot{width:7px;height:7px;border-radius:50%}
+.doc-title{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.5px}
+.doc-num{font-size:10px;color:var(--muted);margin-top:2px}
+.doc-toprow{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:13px}
+.doc-date{font-size:10px;color:var(--muted);text-align:right}
+.doc-meta{display:flex;justify-content:space-between;margin-bottom:13px;padding:9px 11px;background:var(--bl);border-radius:6px}
+.doc-mc{display:flex;flex-direction:column;gap:3px}
+.doc-ml{color:var(--muted);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.doc-mv{color:var(--text);font-weight:700;font-size:12px}
+.doc-msub{color:var(--muted);font-size:10px}
+.bwrap{transition:all .7s ease}
+.bwrap.blurred{filter:blur(4px);opacity:.35;pointer-events:none}
+.bwrap.clear{filter:none;opacity:1}
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl th{padding:6px 7px;text-align:left;background:var(--bl);color:var(--sub);font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:.03em}
+.dtbl td{padding:5px 7px;border-bottom:1px solid var(--bl);color:var(--text);font-size:11px}
+.dtbl td.r{text-align:right}
+.dtot-wrap{display:flex;justify-content:flex-end;margin-top:10px}
+.dtot{background:var(--pl);border:1px solid #bfdbfe;border-radius:6px;padding:8px 13px;min-width:145px}
+.dtr{display:flex;justify-content:space-between;gap:18px;font-size:10px;color:var(--sub);padding:2px 0}
+.dtr.fin{font-weight:700;font-size:12px;color:var(--primary);border-top:1px solid #bfdbfe;margin-top:4px;padding-top:5px}
+.doc-memo{margin-top:10px;padding:8px 10px;background:var(--bl);border-radius:5px;border-left:3px solid #bfdbfe}
+.doc-memo-title{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.doc-memo-item{font-size:10px;color:var(--sub);padding:2px 0;line-height:1.5}
+/* 별도 섹션 */
+.doc-extras{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.doc-extra-box{padding:8px 10px;border-radius:5px;border:1px solid var(--border)}
+.doc-extra-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.doc-extra-val{font-size:11px;color:var(--text);font-weight:500}
+.stamp-wrap{position:absolute;bottom:18px;right:18px;cursor:move;user-select:none}
+.stamp-drag-hint{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);white-space:nowrap;opacity:0;transition:opacity .2s;background:rgba(255,255,255,.9);padding:2px 6px;border-radius:4px;pointer-events:none}
+.stamp-wrap:hover .stamp-drag-hint{opacity:1}
+
+/* 오버레이 */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:500;align-items:flex-start;justify-content:center;backdrop-filter:blur(4px);overflow-y:auto;padding:32px 20px}
+.overlay.show{display:flex;animation:fIn .3s}
+@keyframes fIn{from{opacity:0}to{opacity:1}}
+.ocard{background:var(--white);border-radius:16px;padding:32px;text-align:center;max-width:420px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.22);animation:pUp .4s cubic-bezier(.34,1.56,.64,1);margin:auto}
+@keyframes pUp{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.oicon{width:60px;height:60px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px}
+.otitle{font-size:21px;font-weight:800;color:var(--text);margin-bottom:8px;letter-spacing:-.5px}
+.odesc{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:18px}
+.sug-section-title{font-size:13px;font-weight:700;color:var(--text);text-align:left;margin-bottom:8px}
+.sug-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;text-align:left}
+.sug-item{border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .2s;background:var(--white)}
+.sug-item:hover{border-color:#93c5fd}
+.sug-item.on{border-color:var(--primary);background:var(--pl)}
+.sug-top{display:flex;align-items:center;gap:8px}
+.sug-check{width:16px;height:16px;border:2px solid var(--border);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;transition:all .2s}
+.sug-item.on .sug-check{background:var(--primary);border-color:var(--primary)}
+.sug-name{font-size:13px;font-weight:700;color:var(--text)}
+.sug-desc{font-size:11px;color:var(--muted);margin-top:2px;margin-left:24px}
+.sug-input-wrap{margin-top:6px;margin-left:24px;display:none}
+.sug-item.on .sug-input-wrap{display:block}
+.sug-input{width:100%;padding:7px 10px;border:1px solid #bfdbfe;border-radius:6px;font-size:12px;font-family:inherit;background:#fff;outline:none;color:var(--text)}
+.sug-input:focus{border-color:var(--primary)}
+.bdl{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;transition:all .2s}
+.bdl:hover{background:var(--ph)}
+.adnotice{font-size:11px;color:var(--muted);margin-bottom:12px}
+.bredo{width:100%;padding:10px;background:none;color:var(--sub);border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+.bredo:hover{border-color:var(--sub)}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.pvpanel{display:none}.step{padding:32px 24px}.scards{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="prog-track"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+<header class="hdr">
+  <div class="logo">Quick<span>Quote</span></div>
+  <div class="hdots"><div class="dot active" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div></div>
+</header>
+
+<div class="layout">
+<div id="wiz">
+
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+  <div class="snum">STEP 1 / 4</div>
+  <div class="stitle">누구에게 보내는<br>견적서인가요?</div>
+  <div class="sdesc">수신 업체명만 입력해도 견적서가 채워지기 시작해요.</div>
+  <div class="fg">
+    <div><label class="flabel">수신 업체명 *</label><input class="finput" id="rName" placeholder="예) (주)알맹이컴퍼니" oninput="sync()"></div>
+    <div><label class="flabel">담당자명 (선택)</label><input class="finput" id="rPerson" placeholder="예) 홍길동 팀장" oninput="sync()"></div>
+  </div>
+  <div class="bgrp"><button class="bpri" onclick="go(2)">다음 단계 →</button></div>
+</div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+  <div class="snum">STEP 2 / 4</div>
+  <div class="stitle">어떤 스타일로<br>만들까요?</div>
+  <div class="sdesc">클릭하면 오른쪽 미리보기가 바로 바뀌어요.</div>
+  <div class="scards">
+    <div class="scard sel" id="cA" onclick="pickStyle('a')">
+      <div class="spbox"><div class="mp"><div class="mp-bar"></div><div class="mp-title"></div><div class="mp-row"><div class="mp-cell" style="background:#f1f5f9;flex:3"></div><div class="mp-cell" style="background:#f1f5f9;flex:1"></div></div><div class="mp-row"><div class="mp-cell" style="background:#e2e8f0;flex:3"></div><div class="mp-cell" style="background:#e2e8f0;flex:1"></div></div><div class="mp-row"><div class="mp-cell" style="background:#e2e8f0;flex:3"></div><div class="mp-cell" style="background:#e2e8f0;flex:1"></div></div><div style="display:flex;justify-content:flex-end;margin-top:5px"><div style="width:44px;height:9px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:3px"></div></div></div></div>
+      <div class="scard-name">모던 미니멀</div><div class="scard-tag">스타트업 · 프리랜서</div>
+    </div>
+    <div class="scard" id="cB" onclick="pickStyle('b')">
+      <div class="spbox"><div style="display:flex;flex-direction:column;height:100%"><div class="mp-bh"><div style="width:24px;height:3px;background:rgba(255,255,255,.7);border-radius:1px"></div><div style="width:16px;height:3px;background:rgba(255,255,255,.4);border-radius:1px"></div></div><div class="mp" style="padding-top:6px"><div class="mp-row"><div class="mp-cell" style="background:#f1f5f9;flex:3"></div><div class="mp-cell" style="background:#f1f5f9;flex:1"></div></div><div class="mp-row"><div class="mp-cell" style="background:#e2e8f0;flex:3"></div><div class="mp-cell" style="background:#e2e8f0;flex:1"></div></div><div style="display:flex;justify-content:flex-end;margin-top:6px"><div style="width:44px;height:9px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:2px"></div></div></div></div></div>
+      <div class="scard-name">클래식 비즈</div><div class="scard-tag">기업 · 관공서</div>
+    </div>
+    <div class="scard" id="cC" onclick="pickStyle('c')">
+      <div class="spbox"><div class="mp"><div class="mp-dots"><div class="mp-dot" style="background:#2563eb"></div><div class="mp-dot" style="background:#10b981"></div><div class="mp-dot" style="background:#f59e0b"></div></div><div class="mp-title"></div><div class="mp-row"><div class="mp-cell" style="background:#f1f5f9;flex:3"></div><div class="mp-cell" style="background:#f1f5f9;flex:1"></div></div><div class="mp-row"><div class="mp-cell" style="background:#e2e8f0;flex:3"></div><div class="mp-cell" style="background:#e2e8f0;flex:1"></div></div><div style="display:flex;justify-content:flex-end;margin-top:6px"><div style="width:44px;height:9px;background:#dcfce7;border:1px solid #bbf7d0;border-radius:3px"></div></div></div></div>
+      <div class="scard-name">컬러 프리미엄</div><div class="scard-tag">에이전시 · 크리에이터</div>
+    </div>
+  </div>
+  <div class="bgrp"><button class="bback" onclick="go(1)">이전</button><button class="bpri" onclick="go(3)">다음 단계 →</button></div>
+</div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+  <div class="snum">STEP 3 / 4</div>
+  <div class="stitle">어떤 서비스를<br>제공하나요?</div>
+  <div class="sdesc">품목을 추가하면 오른쪽 견적서가 실시간으로 채워져요.</div>
+  <div class="itbl">
+    <div class="ihdr"><span>품목명</span><span>단가</span><span>수량</span><span style="text-align:right">금액</span><span></span></div>
+    <div class="irows" id="iRows"></div>
+  </div>
+  <button class="addbtn" onclick="addItem()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> 품목 추가</button>
+  <div class="taxbox">
+    <div class="taxrow"><span>공급가액</span><span id="sAmt">0원</span></div>
+    <div class="taxrow"><span id="vatLabel">부가세 (10%)</span><span id="vAmt">0원</span></div>
+    <div class="taxrow tot"><span>합계</span><span class="amt" id="tAmt">0원</span></div>
+    <div class="tax-guide">
+      <p class="tax-guide-q">💡 부가세가 자동으로 계산됐어요.<br>혹시 아래 경우에 해당하시나요?</p>
+      <div class="tax-opts">
+        <button class="tax-opt" id="taxA" onclick="setTax('include')"><span class="tax-opt-icon">🧾</span><div class="tax-opt-text"><strong>부가세 포함으로 처리할게요</strong><span>입력한 금액 안에 세금이 이미 포함된 경우</span></div></button>
+        <button class="tax-opt" id="taxB" onclick="setTax('zero')"><span class="tax-opt-icon">✅</span><div class="tax-opt-text"><strong>부가세 0원으로 할게요</strong><span>면세 품목이거나 세금계산서 미발행인 경우</span></div></button>
+        <button class="tax-opt sel" id="taxC" onclick="setTax('normal')"><span class="tax-opt-icon">👍</span><div class="tax-opt-text"><strong>지금 이대로가 좋아요</strong><span>공급가액에 부가세 10% 별도 추가</span></div></button>
+      </div>
+    </div>
+  </div>
+  <div class="bgrp"><button class="bback" onclick="go(2)">이전</button><button class="bpri" onclick="go(4)">다음 단계 →</button></div>
+</div>
+
+<!-- STEP 4 -->
+<div class="step" id="step4">
+  <div class="snum">STEP 4 / 4</div>
+  <div class="stitle">마지막이에요! 🎉<br>내 회사 정보만 입력하면 완성</div>
+  <div class="sdesc">한 번 입력하면 다음엔 자동으로 불러와요.</div>
+  <div class="fg">
+    <div class="frow">
+      <div><label class="flabel">회사명</label><input class="finput" id="sName" placeholder="(주)알맹이" oninput="sync()"></div>
+      <div><label class="flabel">대표자</label><input class="finput" id="sCeo" placeholder="홍길동" oninput="sync()"></div>
+    </div>
+    <div class="frow">
+      <div>
+        <label class="flabel">사업자번호</label>
+        <input class="finput" id="sBiz" placeholder="000-00-00000" maxlength="12" oninput="fmtBiz(this)">
+      </div>
+      <div>
+        <label class="flabel">연락처</label>
+        <input class="finput" id="sTel" placeholder="010-0000-0000" maxlength="13" oninput="fmtTel(this)" value="010-">
+      </div>
+    </div>
+  </div>
+
+  <!-- 메모 프리셋 -->
+  <div class="preset-section">
+    <div class="preset-header">
+      <div class="preset-title">📋 자주 쓰는 문구</div>
+      <div class="preset-edit-badge">✏️ 클릭해서 수정 가능</div>
+    </div>
+    <div class="preset-hint">박스를 클릭하면 체크돼요. 문구 텍스트를 직접 클릭하면 수정할 수 있어요. ↑↓ 로 순서도 바꿀 수 있어요.</div>
+    <div class="preset-list" id="presetList"></div>
+    <!-- 직접 입력 -->
+    <div class="custom-input-row">
+      <input class="custom-input" id="customText" placeholder="직접 입력하세요..." onkeydown="if(event.key==='Enter')addCustom()">
+      <button class="custom-add-btn" onclick="addCustom()">+ 추가</button>
+    </div>
+  </div>
+
+  <!-- 도장 -->
+  <div class="stamp-section">
+    <label class="stamp-toggle-row">
+      <input type="checkbox" id="stampToggle" onchange="toggleStamp()">
+      <span class="stamp-toggle-label">🔖 가상 도장 삽입하기 (선택)</span>
+    </label>
+    <div class="stamp-body" id="stampBody">
+      <div class="stamp-desc">스타일을 선택하면 회사명·대표자명이 자동 반영돼요. 프리뷰에서 드래그로 위치를 바꿀 수 있어요.</div>
+      <div class="stamp-grid" id="stampGrid"></div>
+      <div class="stamp-colors">
+        <span class="sc-label">색상</span>
+        <div class="scol sel" style="background:#dc2626" data-c="#dc2626" onclick="setStampColor(this)" title="빨간색"></div>
+        <div class="scol" style="background:#1d4ed8" data-c="#1d4ed8" onclick="setStampColor(this)" title="파란색"></div>
+        <div class="scol" style="background:#1e293b" data-c="#1e293b" onclick="setStampColor(this)" title="검정"></div>
+        <div class="scol" style="background:#7c3aed" data-c="#7c3aed" onclick="setStampColor(this)" title="보라"></div>
+      </div>
+      <div class="stamp-edit-note">💡 추후 선택한 도장 스타일은 PDF 출력 시 그대로 반영돼요.</div>
+    </div>
+  </div>
+
+  <div class="bgrp"><button class="bback" onclick="go(3)">이전</button><button class="bpri" onclick="finish()">견적서 완성하기 🎉</button></div>
+</div>
+</div>
+
+<!-- 프리뷰 -->
+<div class="pvpanel">
+  <div class="pvhdr"><span class="pvlabel">실시간 미리보기</span><span class="pvst" id="pvSt">입력 중...</span></div>
+  <div class="pvbody">
+    <!-- DOC A -->
+    <div class="doc" id="docA">
+      <div class="doc-topbar"></div>
+      <div class="doc-toprow"><div><div class="doc-title">견 적 서</div><div class="doc-num">No. 2025-001</div></div><div class="doc-date" id="ddA"></div></div>
+      <div class="doc-meta">
+        <div class="doc-mc"><span class="doc-ml">수신</span><span class="doc-mv" id="aRN">—</span><span class="doc-msub" id="aRP"></span></div>
+        <div class="doc-mc" style="text-align:right"><span class="doc-ml">발신</span><span class="doc-mv" id="aSN">—</span><span class="doc-msub" id="aSS"></span></div>
+      </div>
+      <div class="bwrap blurred" id="aBlur">
+        <table class="dtbl"><thead><tr><th>품목명</th><th style="text-align:right">단가</th><th style="text-align:right">수량</th><th style="text-align:right">금액</th></tr></thead><tbody id="aTb"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;font-size:10px">품목을 입력하면 여기에 표시돼요</td></tr></tbody></table>
+        <div class="dtot-wrap"><div class="dtot"><div class="dtr"><span>공급가액</span><span id="aSup">0원</span></div><div class="dtr"><span id="aVL">부가세</span><span id="aVat">0원</span></div><div class="dtr fin"><span>합계</span><span id="aTot">0원</span></div></div></div>
+        <div class="doc-memo" id="aMemo" style="display:none"><div class="doc-memo-title">특이사항</div><div id="aMemoItems"></div></div>
+        <div class="doc-extras" id="aExtras"></div>
+      </div>
+      <div class="stamp-wrap" id="swA" style="display:none"><div class="stamp-drag-hint">드래그로 위치 이동</div><canvas id="scA" width="80" height="80"></canvas></div>
+    </div>
+    <!-- DOC B -->
+    <div class="doc" id="docB" style="display:none;padding-top:0">
+      <div class="doc-hblock"><div class="doc-title-w">견 적 서</div><div class="doc-num-w">No. 2025-001</div></div>
+      <div class="doc-toprow" style="margin-bottom:11px"><div></div><div class="doc-date" id="ddB"></div></div>
+      <div class="doc-meta">
+        <div class="doc-mc"><span class="doc-ml">수신</span><span class="doc-mv" id="bRN">—</span><span class="doc-msub" id="bRP"></span></div>
+        <div class="doc-mc" style="text-align:right"><span class="doc-ml">발신</span><span class="doc-mv" id="bSN">—</span><span class="doc-msub" id="bSS"></span></div>
+      </div>
+      <div class="bwrap blurred" id="bBlur">
+        <table class="dtbl"><thead><tr><th>품목명</th><th style="text-align:right">단가</th><th style="text-align:right">수량</th><th style="text-align:right">금액</th></tr></thead><tbody id="bTb"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;font-size:10px">품목을 입력하면 여기에 표시돼요</td></tr></tbody></table>
+        <div class="dtot-wrap"><div class="dtot"><div class="dtr"><span>공급가액</span><span id="bSup">0원</span></div><div class="dtr"><span id="bVL">부가세</span><span id="bVat">0원</span></div><div class="dtr fin"><span>합계</span><span id="bTot">0원</span></div></div></div>
+        <div class="doc-memo" id="bMemo" style="display:none"><div class="doc-memo-title">특이사항</div><div id="bMemoItems"></div></div>
+        <div class="doc-extras" id="bExtras"></div>
+      </div>
+      <div class="stamp-wrap" id="swB" style="display:none"><div class="stamp-drag-hint">드래그로 위치 이동</div><canvas id="scB" width="80" height="80"></canvas></div>
+    </div>
+    <!-- DOC C -->
+    <div class="doc" id="docC" style="display:none">
+      <div class="doc-adots"><div class="doc-adot" style="background:#2563eb"></div><div class="doc-adot" style="background:#10b981"></div><div class="doc-adot" style="background:#f59e0b"></div></div>
+      <div class="doc-toprow"><div><div class="doc-title">견 적 서</div><div class="doc-num">No. 2025-001</div></div><div class="doc-date" id="ddC"></div></div>
+      <div class="doc-meta" style="border-left:3px solid #2563eb">
+        <div class="doc-mc"><span class="doc-ml">수신</span><span class="doc-mv" id="cRN">—</span><span class="doc-msub" id="cRP"></span></div>
+        <div class="doc-mc" style="text-align:right"><span class="doc-ml">발신</span><span class="doc-mv" id="cSN">—</span><span class="doc-msub" id="cSS"></span></div>
+      </div>
+      <div class="bwrap blurred" id="cBlur">
+        <table class="dtbl"><thead><tr style="background:#dcfce7"><th>품목명</th><th style="text-align:right">단가</th><th style="text-align:right">수량</th><th style="text-align:right">금액</th></tr></thead><tbody id="cTb"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;font-size:10px">품목을 입력하면 여기에 표시돼요</td></tr></tbody></table>
+        <div class="dtot-wrap"><div class="dtot" style="background:#dcfce7;border-color:#bbf7d0"><div class="dtr"><span>공급가액</span><span id="cSup">0원</span></div><div class="dtr"><span id="cVL">부가세</span><span id="cVat">0원</span></div><div class="dtr fin" style="color:#16a34a;border-color:#bbf7d0"><span>합계</span><span id="cTot">0원</span></div></div></div>
+        <div class="doc-memo" id="cMemo" style="display:none"><div class="doc-memo-title">특이사항</div><div id="cMemoItems"></div></div>
+        <div class="doc-extras" id="cExtras"></div>
+      </div>
+      <div class="stamp-wrap" id="swC" style="display:none"><div class="stamp-drag-hint">드래그로 위치 이동</div><canvas id="scC" width="80" height="80"></canvas></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 오버레이 -->
+<div class="overlay" id="overlay">
+  <div class="ocard">
+    <div class="oicon">🎉</div>
+    <div class="otitle">견적서 완성!</div>
+    <div class="odesc">아래 정보를 추가하면 견적서가 더 전문적으로 보여요.<br>체크한 항목은 견적서 하단 별도 섹션에 자동으로 추가돼요.</div>
+    <div class="sug-section-title">✨ 추가 정보 (선택)</div>
+    <div class="sug-list">
+      <div class="sug-item" id="sugBank" onclick="togSug('bank',this)">
+        <div class="sug-top"><div class="sug-check">✓</div><div class="sug-name">🏦 입금 계좌 정보</div></div>
+        <div class="sug-desc">선택 시 견적서 하단에 별도 박스로 표시</div>
+        <div class="sug-input-wrap"><input class="sug-input" id="siBank" placeholder="예) 국민은행 123-456-789 (홍길동)" oninput="sync()" onclick="event.stopPropagation()"></div>
+      </div>
+      <div class="sug-item" id="sugExp" onclick="togSug('exp',this)">
+        <div class="sug-top"><div class="sug-check">✓</div><div class="sug-name">📅 견적 유효기간</div></div>
+        <div class="sug-desc">선택 시 견적서 하단에 별도 박스로 표시</div>
+        <div class="sug-input-wrap"><input class="sug-input" id="siExp" placeholder="예) 발행일로부터 30일" oninput="sync()" onclick="event.stopPropagation()"></div>
+      </div>
+      <div class="sug-item" id="sugTel" onclick="togSug('tel',this)">
+        <div class="sug-top"><div class="sug-check">✓</div><div class="sug-name">📞 담당자 직통 연락처</div></div>
+        <div class="sug-desc">선택 시 견적서 하단에 별도 박스로 표시</div>
+        <div class="sug-input-wrap"><input class="sug-input" id="siTel" placeholder="예) 010-0000-0000" oninput="sync()" onclick="event.stopPropagation()"></div>
+      </div>
+      <div class="sug-item" id="sugPay" onclick="togSug('pay',this)">
+        <div class="sug-top"><div class="sug-check">✓</div><div class="sug-name">💳 결제 조건</div></div>
+        <div class="sug-desc">선택 시 견적서 하단에 별도 박스로 표시</div>
+        <div class="sug-input-wrap"><input class="sug-input" id="siPay" placeholder="예) 계약금 50%, 잔금 50%" oninput="sync()" onclick="event.stopPropagation()"></div>
+      </div>
+    </div>
+    <button class="bdl" onclick="dlPDF()"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>PDF 저장하기</button>
+    <div class="adnotice">📢 광고 1회 시청 후 무료 다운로드</div>
+    <button class="bredo" onclick="redo()">처음부터 다시 만들기</button>
+  </div>
+</div>
+
+<script>
+// ── 상태 ──
+let cur=1, style='a', items=[], uid=0, taxMode='normal';
+let stampOn=false, stampStyle=0, stampColor='#dc2626';
+let sugOn={bank:false,exp:false,tel:false,pay:false};
+let presets=[
+  {id:1,text:'견적 유효기간: 발행일로부터 30일',on:false},
+  {id:2,text:'부가세 별도 (세금계산서 발행 가능)',on:false},
+  {id:3,text:'계약금 50%, 잔금 50% 조건',on:false},
+  {id:4,text:'작업 완료 후 세금계산서 발행',on:false},
+  {id:5,text:'재료비 변동 시 금액 조정 가능',on:false},
+  {id:6,text:'방문 일정 협의 후 진행',on:false},
+  {id:7,text:'샘플 확인 후 최종 견적 확정',on:false},
+  {id:8,text:'무통장 입금 후 작업 시작',on:false},
+];
+let nextPid=100;
+
+// 날짜
+const now=new Date();
+const dateStr=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+['ddA','ddB','ddC'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=dateStr});
+
+// 도장 12종 정의
+const STAMPS=[
+  {name:'원형\n단선',     fn:(cv,t1,t2,c)=>drawCircle1(cv,t1,t2,c,1)},
+  {name:'원형\n이중선',   fn:(cv,t1,t2,c)=>drawCircle2(cv,t1,t2,c)},
+  {name:'원형\n내부선',   fn:(cv,t1,t2,c)=>drawCircle3(cv,t1,t2,c)},
+  {name:'원형\n별장식',   fn:(cv,t1,t2,c)=>drawCircleStar(cv,t1,t2,c)},
+  {name:'원형\n도트테두리',fn:(cv,t1,t2,c)=>drawCircleDot(cv,t1,t2,c)},
+  {name:'사각\n직인',     fn:(cv,t1,t2,c)=>drawRect(cv,t1,t2,c)},
+  {name:'사각\n이중선',   fn:(cv,t1,t2,c)=>drawRect2(cv,t1,t2,c)},
+  {name:'둥근\n사각형',   fn:(cv,t1,t2,c)=>drawRoundRect(cv,t1,t2,c)},
+  {name:'타원형',         fn:(cv,t1,t2,c)=>drawEllipse(cv,t1,t2,c)},
+  {name:'낙관형\n(이름)', fn:(cv,t1,t2,c)=>drawLogo(cv,t1,t2,c)},
+  {name:'다이아\n형',     fn:(cv,t1,t2,c)=>drawDiamond(cv,t1,t2,c)},
+  {name:'팔각형',         fn:(cv,t1,t2,c)=>drawOctagon(cv,t1,t2,c)},
+];
+
+function drawCircle1(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2,r=w/2-5;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 11px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),cx,cy-8);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+8);}
+function drawCircle2(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=3;x.beginPath();x.arc(cx,cy,w/2-4,0,Math.PI*2);x.stroke();x.lineWidth=1;x.beginPath();x.arc(cx,cy,w/2-9,0,Math.PI*2);x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 11px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),cx,cy-7);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+7);}
+function drawCircle3(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2,r=w/2-5;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2;x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();x.beginPath();x.moveTo(cx-r,cy);x.lineTo(cx+r,cy);x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 10px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),cx,cy-10);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+10);}
+function drawCircleStar(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2,r=w/2-5;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`10px serif`;x.fillText('★',cx,cy-18);x.font=`bold 10px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),cx,cy-4);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+9);}
+function drawCircleDot(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2,r=w/2-6;x.clearRect(0,0,w,h);x.fillStyle=c;for(let i=0;i<24;i++){const a=i/24*Math.PI*2,dx=cx+(r+4)*Math.cos(a),dy=cy+(r+4)*Math.sin(a);x.beginPath();x.arc(dx,dy,1.5,0,Math.PI*2);x.fill();}x.strokeStyle=c;x.lineWidth=1.5;x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();x.textAlign='center';x.textBaseline='middle';x.font=`bold 11px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),cx,cy-7);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+7);}
+function drawRect(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.strokeRect(5,5,w-10,h-10);x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 11px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),w/2,h/2-8);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),w/2,h/2+8);}
+function drawRect2(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=3;x.strokeRect(4,4,w-8,h-8);x.lineWidth=1;x.strokeRect(8,8,w-16,h-16);x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 11px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),w/2,h/2-7);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),w/2,h/2+7);}
+function drawRoundRect(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,rd=10;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();x.roundRect(5,5,w-10,h-10,rd);x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 11px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),w/2,h/2-8);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),w/2,h/2+8);}
+function drawEllipse(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();x.ellipse(cx,cy,w/2-5,h/2-9,0,0,Math.PI*2);x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 11px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),cx,cy-7);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+7);}
+function drawLogo(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2,r=w/2-4;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.stroke();x.lineWidth=1;x.beginPath();x.arc(cx,cy,r-6,0,Math.PI*2);x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';const name=t2.slice(0,2);x.font=`bold ${name.length<2?22:18}px Pretendard,sans-serif`;x.fillText(name,cx,cy);}
+function drawDiamond(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();x.moveTo(cx,5);x.lineTo(w-5,cy);x.lineTo(cx,h-5);x.lineTo(5,cy);x.closePath();x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 10px Pretendard,sans-serif`;x.fillText(t1.slice(0,4),cx,cy-7);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+7);}
+function drawOctagon(cv,t1,t2,c){const x=cv.getContext('2d'),w=cv.width,h=cv.height,cx=w/2,cy=h/2,r=w/2-5;x.clearRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();for(let i=0;i<8;i++){const a=i/8*Math.PI*2-Math.PI/8,px=cx+r*Math.cos(a),py=cy+r*Math.sin(a);i===0?x.moveTo(px,py):x.lineTo(px,py);}x.closePath();x.stroke();x.fillStyle=c;x.textAlign='center';x.textBaseline='middle';x.font=`bold 10px Pretendard,sans-serif`;x.fillText(t1.slice(0,5),cx,cy-7);x.font=`9px Pretendard,sans-serif`;x.fillText(t2.slice(0,4),cx,cy+7);}
+
+// ── 초기화 ──
+addItem();
+renderPresets();
+renderStampGrid();
+
+// ── 네비 ──
+function go(n){
+  document.getElementById('step'+cur).classList.remove('active');
+  cur=n;
+  document.getElementById('step'+n).classList.add('active');
+  dots();progress();sync();
+  if(n>=3)['aBlur','bBlur','cBlur'].forEach(id=>{const el=document.getElementById(id);el.classList.remove('blurred');el.classList.add('clear');});
+  window.scrollTo(0,0);
+}
+function dots(){for(let i=1;i<=4;i++){const d=document.getElementById('d'+i);d.className='dot'+(i<cur?' done':i===cur?' active':'');}}
+function progress(){document.getElementById('pf').style.width=(((cur-1)/3)*100)+'%';}
+
+// ── 스타일 ──
+function pickStyle(s){
+  style=s;
+  ['a','b','c'].forEach(x=>document.getElementById('c'+x.toUpperCase()).classList.remove('sel'));
+  document.getElementById('c'+s.toUpperCase()).classList.add('sel');
+  showDoc();
+}
+function showDoc(){
+  ['docA','docB','docC'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('doc'+style.toUpperCase()).style.display='block';
+}
+
+// ── 자동 포맷 ──
+function fmtTel(el){
+  let v=el.value.replace(/\D/g,'');
+  if(!v.startsWith('010'))v='010';
+  else v=v.slice(0,11);
+  if(v.length<=3)el.value=v;
+  else if(v.length<=7)el.value=v.slice(0,3)+'-'+v.slice(3);
+  else el.value=v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+  sync();
+}
+function fmtBiz(el){
+  let v=el.value.replace(/\D/g,'').slice(0,10);
+  if(v.length<=3)el.value=v;
+  else if(v.length<=5)el.value=v.slice(0,3)+'-'+v.slice(3);
+  else el.value=v.slice(0,3)+'-'+v.slice(3,5)+'-'+v.slice(5);
+  sync();
+}
+
+// ── 품목 ──
+function addItem(){const id=++uid;items.push({id,name:'',price:0,qty:1});renderItems();}
+function delItem(id){items=items.filter(i=>i.id!==id);renderItems();sync();}
+function renderItems(){
+  const rows=document.getElementById('iRows');rows.innerHTML='';
+  items.forEach(item=>{
+    const d=document.createElement('div');d.className='irow';d.id='r'+item.id;
+    const amt=item.price*item.qty;
+    d.innerHTML=`<input class="iinput" placeholder="품목명" value="${item.name}" oninput="upd(${item.id},'name',this.value)"><input class="iinput num" placeholder="0" value="${item.price||''}" oninput="upd(${item.id},'price',this.value)" type="number" min="0"><input class="iinput num" placeholder="1" value="${item.qty}" oninput="upd(${item.id},'qty',this.value)" type="number" min="1"><div class="itotal">${amt?f(amt)+'원':'—'}</div><button class="idel" onclick="delItem(${item.id})">×</button>`;
+    rows.appendChild(d);
+  });
+  calcTax();
+}
+function upd(id,field,val){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  if(field==='name')item.name=val;else if(field==='price')item.price=parseInt(val)||0;else if(field==='qty')item.qty=parseInt(val)||1;
+  const r=document.getElementById('r'+id);if(r)r.querySelector('.itotal').textContent=item.price?f(item.price*item.qty)+'원':'—';
+  calcTax();sync();
+}
+
+// ── 세금 ──
+function setTax(mode){
+  taxMode=mode;
+  ['taxA','taxB','taxC'].forEach(id=>document.getElementById(id).classList.remove('sel'));
+  document.getElementById(mode==='include'?'taxA':mode==='zero'?'taxB':'taxC').classList.add('sel');
+  calcTax();sync();
+}
+function calcTax(){
+  const raw=items.reduce((s,i)=>s+i.price*i.qty,0);
+  let sup,vat,tot;
+  if(taxMode==='include'){sup=Math.round(raw/1.1);vat=raw-sup;tot=raw;}
+  else if(taxMode==='zero'){sup=raw;vat=0;tot=raw;}
+  else{sup=raw;vat=Math.round(raw*.1);tot=sup+vat;}
+  document.getElementById('sAmt').textContent=f(sup)+'원';
+  document.getElementById('vAmt').textContent=f(vat)+'원';
+  document.getElementById('tAmt').textContent=f(tot)+'원';
+  const vl=taxMode==='zero'?'부가세 (면세)':taxMode==='include'?'부가세 (포함)':'부가세 (10%)';
+  document.getElementById('vatLabel').textContent=vl;
+  return{sup,vat,tot,vl};
+}
+
+// ── 메모 프리셋 ──
+function renderPresets(){
+  const list=document.getElementById('presetList');list.innerHTML='';
+  presets.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='pitem'+(p.on?' on':'');d.id='pi'+p.id;
+    d.innerHTML=`
+      <div class="pitem-row">
+        <div class="pcheck">${p.on?'✓':''}</div>
+        <div class="ptext-wrap">
+          <div class="ptext" contenteditable="true"
+            onclick="event.stopPropagation()"
+            onfocus="event.stopPropagation()"
+            oninput="editPreset(${p.id},this.textContent)">${p.text}</div>
+          <div class="edit-hint">✏️ 텍스트를 클릭해서 수정해보세요</div>
+        </div>
+        <div class="porder">
+          <button class="obtn" onclick="event.stopPropagation();movePreset(${p.id},-1)">▲</button>
+          <button class="obtn" onclick="event.stopPropagation();movePreset(${p.id},1)">▼</button>
+        </div>
+      </div>`;
+    d.addEventListener('click',function(e){
+      if(e.target.closest('[contenteditable]')||e.target.closest('.obtn'))return;
+      togglePreset(p.id);
+    });
+    list.appendChild(d);
+  });
+}
+function togglePreset(id){const p=presets.find(x=>x.id===id);if(p){p.on=!p.on;renderPresets();sync();}}
+function editPreset(id,text){const p=presets.find(x=>x.id===id);if(p){p.text=text;sync();}}
+function movePreset(id,dir){
+  const i=presets.findIndex(x=>x.id===id);const ni=i+dir;
+  if(ni<0||ni>=presets.length)return;
+  [presets[i],presets[ni]]=[presets[ni],presets[i]];
+  renderPresets();sync();
+}
+function addCustom(){
+  const inp=document.getElementById('customText');
+  const t=inp.value.trim();if(!t)return;
+  presets.push({id:nextPid++,text:t,on:true});
+  inp.value='';
+  renderPresets();sync();
+}
+
+// ── 도장 그리드 ──
+function renderStampGrid(){
+  const grid=document.getElementById('stampGrid');grid.innerHTML='';
+  const t1=document.getElementById('sName')?.value||'회사명';
+  const t2=document.getElementById('sCeo')?.value||'대표자';
+  STAMPS.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.className='stamp-card'+(i===stampStyle?' sel':'');
+    card.onclick=()=>{stampStyle=i;renderStampGrid();sync();};
+    const cv=document.createElement('canvas');cv.width=64;cv.height=64;
+    s.fn(cv,t1,t2,stampColor);
+    const nm=document.createElement('div');nm.className='stamp-card-name';nm.textContent=s.name;
+    card.appendChild(cv);card.appendChild(nm);
+    grid.appendChild(card);
+  });
+}
+function toggleStamp(){
+  stampOn=document.getElementById('stampToggle').checked;
+  document.getElementById('stampBody').className='stamp-body'+(stampOn?' open':'');
+  sync();
+}
+function setStampColor(el){
+  document.querySelectorAll('.scol').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');stampColor=el.dataset.c;
+  renderStampGrid();sync();
+}
+
+// ── 추가 제안 ──
+function togSug(key,el){
+  sugOn[key]=!sugOn[key];
+  el.classList.toggle('on',sugOn[key]);
+  sync();
+}
+
+// ── 싱크 ──
+function sync(){
+  const rn=v('rName'),rp=v('rPerson'),sn=v('sName'),sc=v('sCeo'),sb=v('sBiz'),st=v('sTel');
+  const ssub=[sc,sb].filter(Boolean).join(' · ');
+  const{sup,vat,tot,vl}=calcTax();
+  ['a','b','c'].forEach(s=>{
+    set(s+'RN',rn||'—');set(s+'RP',rp?rp+' 귀하':'');
+    set(s+'SN',sn||'—');set(s+'SS',ssub);
+    set(s+'Sup',f(sup)+'원');set(s+'Vat',f(vat)+'원');set(s+'Tot',f(tot)+'원');
+    set(s+'VL',vl||'부가세');
+  });
+  // 품목
+  const filled=items.filter(i=>i.name||i.price);
+  const tbHtml=filled.length===0
+    ?'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px;font-size:10px">품목을 입력하면 여기에 표시돼요</td></tr>'
+    :filled.map(i=>`<tr><td>${i.name||'—'}</td><td class="r">${i.price?f(i.price)+'원':'—'}</td><td class="r">${i.qty}</td><td class="r">${i.price?f(i.price*i.qty)+'원':'—'}</td></tr>`).join('');
+  ['aTb','bTb','cTb'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=tbHtml;});
+  // 메모
+  const onP=presets.filter(p=>p.on);
+  ['a','b','c'].forEach(s=>{
+    const memo=document.getElementById(s+'Memo');
+    const items2=document.getElementById(s+'MemoItems');
+    if(memo&&items2){memo.style.display=onP.length?'block':'none';items2.innerHTML=onP.map(p=>`<div class="doc-memo-item">• ${p.text}</div>`).join('');}
+  });
+  // 별도 섹션 (추가 제안)
+  const extraMap={bank:{label:'입금 계좌',id:'siBank'},exp:{label:'견적 유효기간',id:'siExp'},tel:{label:'담당자 연락처',id:'siTel'},pay:{label:'결제 조건',id:'siPay'}};
+  const extraHtml=Object.keys(sugOn).filter(k=>sugOn[k]).map(k=>{
+    const val=v(extraMap[k].id);
+    return`<div class="doc-extra-box"><div class="doc-extra-label">${extraMap[k].label}</div><div class="doc-extra-val">${val||'입력 중...'}</div></div>`;
+  }).join('');
+  ['aExtras','bExtras','cExtras'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=extraHtml;});
+  // 도장
+  ['a','b','c'].forEach(s=>{
+    const sw=document.getElementById('sw'+s.toUpperCase());
+    const cv=document.getElementById('sc'+s.toUpperCase());
+    if(sw&&cv){sw.style.display=stampOn?'block':'none';if(stampOn)STAMPS[stampStyle].fn(cv,sn||'회사명',sc||'대표자',stampColor);}
+  });
+  showDoc();
+  if(stampOn)renderStampGrid();
+  // 상태
+  const cnt=[rn,sn].filter(Boolean).length+(items.some(i=>i.name)?1:0);
+  document.getElementById('pvSt').textContent=cnt===0?'입력 중...':cnt===1?'조금 더...':cnt===2?'절반 완성!':'거의 다 됐어요!';
+}
+function v(id){return(document.getElementById(id)||{}).value||'';}
+function set(id,t){const el=document.getElementById(id);if(el)el.textContent=t;}
+function f(n){return n.toLocaleString('ko-KR');}
+
+// ── 드래그 ──
+['swA','swB','swC'].forEach(id=>{
+  const el=document.getElementById(id);if(!el)return;
+  let ox,oy,sx,sy,drag=false;
+  el.addEventListener('mousedown',e=>{drag=true;ox=el.offsetLeft;oy=el.offsetTop;sx=e.clientX;sy=e.clientY;e.preventDefault();});
+  document.addEventListener('mousemove',e=>{if(!drag)return;el.style.left=(ox+e.clientX-sx)+'px';el.style.top=(oy+e.clientY-sy)+'px';el.style.bottom='auto';el.style.right='auto';});
+  document.addEventListener('mouseup',()=>{drag=false;});
+});
+
+// ── 완성 ──
+function finish(){
+  sync();
+  ['aBlur','bBlur','cBlur'].forEach(id=>{const el=document.getElementById(id);el.classList.remove('blurred');el.classList.add('clear');});
+  document.getElementById('pf').style.width='100%';
+  for(let i=1;i<=4;i++)document.getElementById('d'+i).className='dot done';
+  setTimeout(()=>document.getElementById('overlay').classList.add('show'),500);
+}
+function dlPDF(){alert('🎬 광고 1회 시청 후 PDF 다운로드!\n(구현 시: 리워드 광고 → jsPDF 변환)');}
+function redo(){document.getElementById('overlay').classList.remove('show');location.reload();}
+
+// ── 시작 ──
+dots();progress();sync();
+</script>
+</body>
+</html>
