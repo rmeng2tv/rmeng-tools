@@ -10,7 +10,7 @@
 - [x] UX 흐름 확정
 - [x] 데이터 구조 확정
 - [x] 도메인 확정 (tools.rmeng2.co.kr)
-- [ ] React 프로젝트 세팅
+- [x] React 프로젝트 세팅
 - [ ] FastComet 서브도메인 생성
 - [ ] 구현 시작
 
@@ -18,28 +18,20 @@
 
 ## Phase 1 — 프로젝트 세팅
 
-- [ ] Vite + React 프로젝트 생성
-  ```bash
-  npm create vite@latest rmeng-tools -- --template react
-  cd rmeng-tools
-  npm install
-  ```
-- [ ] jsPDF 설치
-  ```bash
-  npm install jspdf
-  ```
-- [ ] 폴더 구조 생성 (CLAUDE.md 5번 참고)
-- [ ] GitHub 레포 생성 (rmeng-tools)
-- [ ] 첫 커밋 "프로젝트 초기 세팅"
+- [x] Vite + React 프로젝트 생성
+- [x] jsPDF 설치
+- [x] 폴더 구조 생성 (CLAUDE.md 5번 참고)
+- [ ] GitHub 레포 생성 (rmeng-tools) ← 수동으로 생성 후 연결 필요
+- [x] 첫 커밋 "프로젝트 초기 세팅"
 
 ---
 
 ## Phase 2 — 핵심 상태 관리
 
-- [ ] `useQuote.js` hook 작성 (데이터 구조 CLAUDE.md 7번 참고)
-- [ ] localStorage 연동 (발신자 정보 저장/불러오기)
-- [ ] 세금 계산 유틸 `taxCalc.js`
-- [ ] 전화번호/사업자번호 포맷 유틸 `formatters.js`
+- [x] `useQuote.js` hook 작성 (데이터 구조 CLAUDE.md 7번 참고)
+- [x] localStorage 연동 (발신자 정보 저장/불러오기)
+- [x] 세금 계산 유틸 `taxCalc.js`
+- [x] 전화번호/사업자번호 포맷 유틸 `formatters.js`
 
 ---
 
