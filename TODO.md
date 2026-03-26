@@ -63,11 +63,13 @@
 
 ---
 
-## Phase 6 — PDF 출력
+## Phase 6 — PDF + 이미지 출력
 
-- [ ] `pdfExport.js` — jsPDF 변환 로직
-- [ ] 리워드 광고 플로우 연동 (일단 alert → 추후 실제 광고)
-- [ ] PDF 파일명: `견적서_수신업체명_날짜.pdf`
+- [x] `pdfExport.js` — html2canvas + jsPDF 변환 로직
+- [x] 이미지(PNG) 다운로드 기능 추가 (scale: 2 고해상도)
+- [x] Complete 오버레이에 버튼 2개: PDF 저장 + 이미지 저장
+- [x] 파일명: `견적서_수신업체명_날짜.pdf` / `.png`
+- [ ] 리워드 광고 플로우 연동 ← Phase 8에서 진행
 
 ---
 

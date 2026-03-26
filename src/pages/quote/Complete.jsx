@@ -5,7 +5,7 @@ const SUGGESTIONS = [
   { key: 'payment', name: '결제 조건', desc: '선택 시 견적서 하단에 별도 박스로 표시', placeholder: '예) 계약금 50%, 잔금 50%' },
 ];
 
-export default function Complete({ show, state, toggleExtra, updateExtra, onDownload, onRedo }) {
+export default function Complete({ show, state, toggleExtra, updateExtra, onDownloadPDF, onDownloadImage, onRedo }) {
   if (!show) return null;
 
   return (
@@ -47,13 +47,20 @@ export default function Complete({ show, state, toggleExtra, updateExtra, onDown
           })}
         </div>
 
-        <button className="bdl" onClick={onDownload}>
+        {/* 다운로드 버튼 2개 */}
+        <button className="bdl" onClick={onDownloadPDF}>
           <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
           </svg>
           PDF 저장하기
         </button>
-        <div className="adnotice">광고 1회 시청 후 무료 다운로드</div>
+        <button className="bdl" style={{ background: '#10b981' }} onClick={onDownloadImage}>
+          <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
+          이미지 저장하기
+        </button>
+        <div className="adnotice">광고 1회 시청 후 무료 다운로드 (준비 중)</div>
         <button className="bredo" onClick={onRedo}>처음부터 다시 만들기</button>
       </div>
     </div>

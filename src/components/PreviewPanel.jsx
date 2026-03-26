@@ -1,6 +1,6 @@
 import DocTemplate from './DocTemplate';
 
-export default function PreviewPanel({ state, currentStep }) {
+export default function PreviewPanel({ state, currentStep, docRef }) {
   const { receiver, sender, items } = state;
 
   // 진행도 상태 텍스트
@@ -19,7 +19,9 @@ export default function PreviewPanel({ state, currentStep }) {
         <span className="pvst">{statusText}</span>
       </div>
       <div className="pvbody">
-        <DocTemplate state={state} currentStep={currentStep} />
+        <div ref={docRef}>
+          <DocTemplate state={state} currentStep={currentStep} />
+        </div>
       </div>
     </div>
   );

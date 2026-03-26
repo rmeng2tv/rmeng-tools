@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import useQuote from '../../hooks/useQuote';
 import ProgressBar from '../../components/ProgressBar';
 import PreviewPanel from '../../components/PreviewPanel';
@@ -7,10 +7,12 @@ import Step2 from './Step2';
 import Step3 from './Step3';
 import Step4 from './Step4';
 import Complete from './Complete';
+import { downloadPDF, downloadImage } from '../../utils/pdfExport';
 
 export default function QuoteWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [completed, setCompleted] = useState(false);
+  const docRef = useRef(null);
 
   const {
     state,
@@ -40,8 +42,15 @@ export default function QuoteWizard() {
     setCompleted(true);
   }
 
-  function handleDownload() {
-    alert('광고 1회 시청 후 PDF 다운로드!\n(추후 리워드 광고 + jsPDF 연동 예정)');
+  async function handleDownloadPDF() {
+    if (!docRef.current) return;
+    // 추후 리워드 광고 자리 (Phase 8)
+    await downloadPDF(docRef.current, state.receiver.name);
+  }
+
+  async function handleDownloadImage() {
+    if (!docRef.current) return;
+    await downloadImage(docRef.current, state.receiver.name);
   }
 
   function handleRedo() {
@@ -96,8 +105,11 @@ export default function QuoteWizard() {
           )}
         </div>
 
-        {/* 우측 프리뷰 — Phase 4에서 구현 */}
-        <PreviewPanel state={state} currentStep={currentStep} />
+        <PreviewPanel
+          state={state}
+          currentStep={completed ? 5 : currentStep}
+          docRef={docRef}
+        />
       </div>
 
       <Complete
@@ -105,7 +117,8 @@ export default function QuoteWizard() {
         state={state}
         toggleExtra={toggleExtra}
         updateExtra={updateExtra}
-        onDownload={handleDownload}
+        onDownloadPDF={handleDownloadPDF}
+        onDownloadImage={handleDownloadImage}
         onRedo={handleRedo}
       />
     </>
