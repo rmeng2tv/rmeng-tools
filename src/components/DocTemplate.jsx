@@ -21,7 +21,8 @@ export default function DocTemplate({ state, currentStep }) {
   const blurred = currentStep < 3;
   const filledItems = items.filter(i => i.name || i.price);
   const activeMemos = memoItems.filter(m => m.on);
-  const senderSub = [sender.ceo, sender.bizNum, sender.tel].filter(Boolean).join(' \u00B7 ');
+  const senderLine2 = sender.ceo ? sender.ceo + ' 대표' : '';
+  const senderLine3 = [sender.bizNum, sender.tel].filter(Boolean).join(' \u00B7 ');
 
   // 추가 제안 (extras)
   const extraMap = {
@@ -43,7 +44,8 @@ export default function DocTemplate({ state, currentStep }) {
       <div className="doc-mc" style={{ textAlign: 'right' }}>
         <span className="doc-ml">발신</span>
         <span className="doc-mv">{sender.name || '\u2014'}</span>
-        <span className="doc-msub">{senderSub}</span>
+        {senderLine2 && <span className="doc-msub">{senderLine2}</span>}
+        {senderLine3 && <span className="doc-msub">{senderLine3}</span>}
       </div>
     </div>
   );
@@ -215,7 +217,8 @@ export default function DocTemplate({ state, currentStep }) {
         <div className="doc-mc" style={{ textAlign: 'right' }}>
           <span className="doc-ml">발신</span>
           <span className="doc-mv" style={{ color: '#44403c' }}>{sender.name || '\u2014'}</span>
-          <span className="doc-msub">{senderSub}</span>
+          {senderLine2 && <span className="doc-msub">{senderLine2}</span>}
+          {senderLine3 && <span className="doc-msub">{senderLine3}</span>}
         </div>
       </div>
       <div className={`bwrap${blurred ? ' blurred' : ' clear'}`}>
