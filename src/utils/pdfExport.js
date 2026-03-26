@@ -12,29 +12,23 @@ function makeFileName(receiverName, ext) {
 }
 
 /**
- * 캡처 전 요소를 화면에 임시 표시 → 캡처 → 다시 숨김
+ * 요소를 복제 → 화면에 임시 배치 → 캡처 → 제거
  */
 async function captureElement(element) {
-  // 원래 스타일 저장
-  const origStyle = element.style.cssText;
+  const clone = element.cloneNode(true);
+  clone.style.cssText = 'position: fixed; top: 0; left: 0; width: 400px; z-index: 99999; background: #fff; pointer-events: none;';
+  document.body.appendChild(clone);
 
-  // 캡처를 위해 화면에 임시 배치
-  element.style.cssText = 'position: fixed; top: 0; left: 0; width: 400px; z-index: -1; opacity: 1; pointer-events: none;';
+  await new Promise(r => setTimeout(r, 300));
 
-  // 렌더링 대기
-  await new Promise(r => setTimeout(r, 100));
-
-  const canvas = await html2canvas(element, {
+  const canvas = await html2canvas(clone, {
     scale: 2,
     useCORS: true,
     backgroundColor: '#ffffff',
     logging: false,
-    windowWidth: 400,
   });
 
-  // 원래 스타일 복원 (다시 숨김)
-  element.style.cssText = origStyle;
-
+  document.body.removeChild(clone);
   return canvas;
 }
 
@@ -44,9 +38,9 @@ async function captureElement(element) {
 export async function downloadPDF(element, receiverName) {
   const canvas = await captureElement(element);
 
-  const imgWidth = 210; // A4 가로 mm
+  const imgWidth = 210;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  const pageHeight = 297; // A4 세로 mm
+  const pageHeight = 297;
 
   const pdf = new jsPDF('p', 'mm', 'a4');
   const imgData = canvas.toDataURL('image/png');
