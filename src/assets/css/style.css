@@ -259,8 +259,12 @@ body {
 @media (max-width: 800px) {
   .layout { grid-template-columns: 1fr; }
   .pvpanel { display: none; }
-  .step { padding: 32px 24px; }
+  .step { padding: 32px 24px; padding-left: 24px; min-height: auto; justify-content: flex-start; padding-top: 40px; }
   .scards { grid-template-columns: 1fr 1fr; }
+  .stitle { font-size: 22px; }
+  .fg, .itbl, .taxbox, .preset-section, .addbtn { max-width: 100%; }
+  .ihdr, .irow { grid-template-columns: 1fr 72px 52px 72px 28px; gap: 4px; }
+  .overlay { right: 0; }
 }
 
 /* ── 인쇄 (PDF 저장용) ── */
