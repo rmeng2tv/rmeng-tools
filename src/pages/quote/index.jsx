@@ -132,7 +132,7 @@ export default function QuoteWizard() {
       {/* 캡처/인쇄용 — 다운로드 시 잠깐 표시 */}
       {capturing && (
         <div className="print-target" style={{
-          position: 'fixed', top: 0, left: 0, width: 380, padding: 16,
+          position: 'fixed', top: 0, left: 0, width: 680, padding: 20,
           zIndex: 99999, background: '#fff',
         }}>
           <div ref={captureRef}>
