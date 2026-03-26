@@ -131,18 +131,13 @@ export default function QuoteWizard() {
         onBack={handleBack}
       />
 
-      {/* 캡처용 오버레이 — 다운로드 시 잠깐 표시 */}
+      {/* 캡처용 — 다운로드 시 잠깐 표시 */}
       {capturing && (
         <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          position: 'fixed', top: 0, left: 0, width: 380, padding: 16,
           zIndex: 99999, background: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexDirection: 'column', gap: 16,
         }}>
-          <div style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>
-            문서 생성 중...
-          </div>
-          <div ref={captureRef} style={{ width: 400 }}>
+          <div ref={captureRef}>
             <DocTemplate state={state} currentStep={99} />
           </div>
         </div>

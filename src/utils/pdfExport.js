@@ -29,17 +29,17 @@ export async function downloadPDF(element, receiverName) {
     const pageHeight = 297;
 
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
     let position = 0;
     let remaining = imgHeight;
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
 
     while (remaining > pageHeight) {
       remaining -= pageHeight;
       position -= pageHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     }
 
     pdf.save(makeFileName(receiverName, 'pdf'));
