@@ -62,6 +62,7 @@ function createInitialState() {
     memoItems: loadMemos(),
     stamp: loadJSON('qt_stamp', DEFAULT_STAMP),
     extras: {
+      date: { on: false, value: '' },
       bank: { on: false, value: '' },
       expiry: { on: false, value: '' },
       contact: { on: false, value: '' },

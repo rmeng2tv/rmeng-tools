@@ -1,9 +1,12 @@
 import { useState } from 'react';
 
+// 오늘 날짜 (YYYY-MM-DD)
+const today = new Date().toISOString().slice(0, 10);
+
 const DEFAULT_SUGGESTIONS = [
-  { key: 'bank', name: '입금 계좌 정보', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '국민은행 123-456-789 (홍길동)' },
-  { key: 'expiry', name: '견적 유효기간', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '발행일로부터 30일' },
-  { key: 'contact', name: '담당자 직통 연락처', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '010-0000-0000' },
+  { key: 'bank', name: '입금 계좌 정보', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '국민은행 123-456-789 (홍길동)', inputType: 'text' },
+  { key: 'expiry', name: '견적 유효기간', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '발행일로부터 30일', inputType: 'text' },
+  { key: 'contact', name: '담당자 직통 연락처', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '010-0000-0000', inputType: 'text' },
 ];
 
 export default function Complete({ show, state, toggleExtra, updateExtra, reorderExtras, onDownloadPDF, onDownloadImage, onBack }) {
@@ -43,6 +46,34 @@ export default function Complete({ show, state, toggleExtra, updateExtra, reorde
         </div>
 
         <div className="sug-section-title">추가 정보 (선택)</div>
+        <div className="sug-list">
+          {/* 견적 작성일 변경 */}
+          <div
+            className={`sug-item${state.extras.date?.on ? ' on' : ''}`}
+            onClick={() => {
+              if (!state.extras.date?.on && !state.extras.date?.value) {
+                updateExtra('date', today);
+              }
+              toggleExtra('date');
+            }}
+          >
+            <div className="sug-top">
+              <div className="sug-check">{state.extras.date?.on ? '\u2713' : ''}</div>
+              <div className="sug-name" style={{ flex: 1 }}>견적 작성일 변경</div>
+            </div>
+            <div className="sug-desc">기본값은 오늘 날짜. 선택 시 달력에서 변경 가능</div>
+            <div className="sug-input-wrap">
+              <input
+                className="sug-input"
+                type="date"
+                value={state.extras.date?.value || today}
+                onClick={e => e.stopPropagation()}
+                onChange={e => updateExtra('date', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="sug-list">
           {orderedSuggestions.map(sug => {
             const extra = state.extras[sug.key];

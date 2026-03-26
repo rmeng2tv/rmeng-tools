@@ -1,9 +1,14 @@
 import { calcTax } from '../utils/taxCalc';
 import { fmtNumber } from '../utils/formatters';
 
-// 오늘 날짜 문자열
-const now = new Date();
-const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+// 날짜 문자열 변환 (YYYY-MM-DD → YYYY.MM.DD)
+function formatDate(dateValue) {
+  if (dateValue && dateValue.includes('-')) {
+    return dateValue.replace(/-/g, '.');
+  }
+  const now = new Date();
+  return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+}
 
 // 일련번호 (세션당 1회 생성, 있어 보이는 랜덤 코드)
 function generateDocNum() {
@@ -18,6 +23,9 @@ export default function DocTemplate({ state, currentStep }) {
   const { receiver, docStyle, items, taxMode, sender, memoItems, extras } = state;
   const { supply, vat, total, vatLabel } = calcTax(items, taxMode);
 
+  // 견적 작성일 (extras.date가 설정되면 해당 날짜, 아니면 오늘)
+  const dateStr = (extras.date?.on && extras.date?.value) ? formatDate(extras.date.value) : formatDate();
+
   const blurred = currentStep < 3;
   const filledItems = items.filter(i => i.name || i.price);
   const activeMemos = memoItems.filter(m => m.on);
@@ -31,7 +39,7 @@ export default function DocTemplate({ state, currentStep }) {
     contact: '담당자 연락처',
     payment: '결제 조건',
   };
-  const activeExtras = Object.entries(extras).filter(([, v]) => v.on);
+  const activeExtras = Object.entries(extras).filter(([key, v]) => v.on && key !== 'date');
 
   // 공통 영역: 수신/발신 메타
   const meta = (
