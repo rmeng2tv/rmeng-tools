@@ -3,8 +3,6 @@ import { jsPDF } from 'jspdf';
 
 /**
  * 파일명 생성
- * @param {string} receiverName - 수신 업체명
- * @param {string} ext - 확장자 ('pdf' | 'png')
  */
 function makeFileName(receiverName, ext) {
   const now = new Date();
@@ -14,24 +12,34 @@ function makeFileName(receiverName, ext) {
 }
 
 /**
- * 프리뷰 영역을 Canvas로 캡처
- * @param {HTMLElement} element - 캡처할 DOM 요소
- * @returns {Promise<HTMLCanvasElement>}
+ * 캡처 전 요소를 화면에 임시 표시 → 캡처 → 다시 숨김
  */
 async function captureElement(element) {
-  return html2canvas(element, {
+  // 원래 스타일 저장
+  const origStyle = element.style.cssText;
+
+  // 캡처를 위해 화면에 임시 배치
+  element.style.cssText = 'position: fixed; top: 0; left: 0; width: 400px; z-index: -1; opacity: 1; pointer-events: none;';
+
+  // 렌더링 대기
+  await new Promise(r => setTimeout(r, 100));
+
+  const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
     backgroundColor: '#ffffff',
     logging: false,
-    windowWidth: element.scrollWidth,
+    windowWidth: 400,
   });
+
+  // 원래 스타일 복원 (다시 숨김)
+  element.style.cssText = origStyle;
+
+  return canvas;
 }
 
 /**
  * PDF 다운로드
- * @param {HTMLElement} element - 캡처할 DOM 요소 (.doc 클래스)
- * @param {string} receiverName - 수신 업체명 (파일명용)
  */
 export async function downloadPDF(element, receiverName) {
   const canvas = await captureElement(element);
@@ -43,7 +51,6 @@ export async function downloadPDF(element, receiverName) {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const imgData = canvas.toDataURL('image/png');
 
-  // 한 페이지에 들어가면 그대로, 넘치면 여러 페이지
   let position = 0;
   let remaining = imgHeight;
 
@@ -61,8 +68,6 @@ export async function downloadPDF(element, receiverName) {
 
 /**
  * 이미지(PNG) 다운로드
- * @param {HTMLElement} element - 캡처할 DOM 요소 (.doc 클래스)
- * @param {string} receiverName - 수신 업체명 (파일명용)
  */
 export async function downloadImage(element, receiverName) {
   const canvas = await captureElement(element);
