@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import useQuote from '../../hooks/useQuote';
 import ProgressBar from '../../components/ProgressBar';
 import PreviewPanel from '../../components/PreviewPanel';
@@ -15,6 +15,13 @@ export default function QuoteWizard() {
   const [completed, setCompleted] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const captureRef = useRef(null);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 800);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 800);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const {
     state,
@@ -124,10 +131,12 @@ export default function QuoteWizard() {
           )}
         </div>
 
-        <PreviewPanel
-          state={state}
-          currentStep={completed ? 5 : currentStep}
-        />
+        {!isMobile && (
+          <PreviewPanel
+            state={state}
+            currentStep={completed ? 5 : currentStep}
+          />
+        )}
       </div>
 
       <Complete
