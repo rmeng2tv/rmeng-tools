@@ -27,4 +27,4 @@ jobs:
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASS }}
           local-dir: ./dist/
-          server-dir: /tools.rmeng2.co.kr/
+          server-dir: ./
