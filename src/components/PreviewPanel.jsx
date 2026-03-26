@@ -6,7 +6,7 @@ const BOTTOM_MARGIN = 16;
 // 2페이지 상단 여백
 const PAGE2_TOP_PAD = 24;
 
-export default function PreviewPanel({ state, currentStep, docRef }) {
+export default function PreviewPanel({ state, currentStep }) {
   const { receiver, sender, items } = state;
   const measureRef = useRef(null);
   const [pageHeight, setPageHeight] = useState(0);
@@ -83,11 +83,6 @@ export default function PreviewPanel({ state, currentStep, docRef }) {
         {/* 숨겨진 측정용 */}
         <div ref={measureRef} style={{ position: 'absolute', left: -9999, top: 0, width: '100%', visibility: 'hidden', pointerEvents: 'none' }}>
           <DocTemplate state={state} currentStep={currentStep} />
-        </div>
-
-        {/* PDF/이미지 내보내기용 (깨끗한 단일 렌더) */}
-        <div ref={docRef} style={{ position: 'absolute', left: -9999, top: 0, width: '100%', pointerEvents: 'none' }}>
-          <DocTemplate state={state} currentStep={99} />
         </div>
 
         {/* 프리뷰 표시 */}

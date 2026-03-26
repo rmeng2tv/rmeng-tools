@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import useQuote from '../../hooks/useQuote';
 import ProgressBar from '../../components/ProgressBar';
 import PreviewPanel from '../../components/PreviewPanel';
+import DocTemplate from '../../components/DocTemplate';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
@@ -12,7 +13,8 @@ import { downloadPDF, downloadImage } from '../../utils/pdfExport';
 export default function QuoteWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [completed, setCompleted] = useState(false);
-  const docRef = useRef(null);
+  const [capturing, setCapturing] = useState(false);
+  const captureRef = useRef(null);
 
   const {
     state,
@@ -44,14 +46,21 @@ export default function QuoteWizard() {
   }
 
   async function handleDownloadPDF() {
-    if (!docRef.current) return;
-    // 추후 리워드 광고 자리 (Phase 8)
-    await downloadPDF(docRef.current, state.receiver.name);
+    setCapturing(true);
+    await new Promise(r => setTimeout(r, 500));
+    if (captureRef.current) {
+      await downloadPDF(captureRef.current, state.receiver.name);
+    }
+    setCapturing(false);
   }
 
   async function handleDownloadImage() {
-    if (!docRef.current) return;
-    await downloadImage(docRef.current, state.receiver.name);
+    setCapturing(true);
+    await new Promise(r => setTimeout(r, 500));
+    if (captureRef.current) {
+      await downloadImage(captureRef.current, state.receiver.name);
+    }
+    setCapturing(false);
   }
 
   function handleBack() {
@@ -109,7 +118,6 @@ export default function QuoteWizard() {
         <PreviewPanel
           state={state}
           currentStep={completed ? 5 : currentStep}
-          docRef={docRef}
         />
       </div>
 
@@ -122,6 +130,23 @@ export default function QuoteWizard() {
         onDownloadImage={handleDownloadImage}
         onBack={handleBack}
       />
+
+      {/* 캡처용 오버레이 — 다운로드 시 잠깐 표시 */}
+      {capturing && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          zIndex: 99999, background: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexDirection: 'column', gap: 16,
+        }}>
+          <div style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>
+            문서 생성 중...
+          </div>
+          <div ref={captureRef} style={{ width: 400 }}>
+            <DocTemplate state={state} currentStep={99} />
+          </div>
+        </div>
+      )}
     </>
   );
 }

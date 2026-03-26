@@ -9,47 +9,21 @@ function makeFileName(receiverName, ext) {
 }
 
 /**
- * 화면에 보이는 .doc 요소를 찾아서 복제 → 캡처 → 제거
+ * ref로 전달받은 실제 화면에 표시된 요소를 캡처
  */
-async function captureDoc() {
-  // 프리뷰에서 보이는 .doc 요소 찾기 (전체 내용 포함)
-  const sourceDoc = document.querySelector('.pvbody .doc');
-  if (!sourceDoc) throw new Error('문서를 찾을 수 없습니다');
-
-  // 복제해서 body에 임시 배치
-  const clone = sourceDoc.cloneNode(true);
-  clone.style.cssText = 'position: absolute; top: 0; left: 0; width: 380px; z-index: 99999; background: #fff; overflow: visible; max-height: none; height: auto;';
-
-  // 블러 해제 (캡처용)
-  const bwrap = clone.querySelector('.bwrap');
-  if (bwrap) {
-    bwrap.classList.remove('blurred');
-    bwrap.classList.add('clear');
-  }
-
-  document.body.appendChild(clone);
-  await new Promise(r => setTimeout(r, 300));
-
-  try {
-    const canvas = await html2canvas(clone, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-    });
-    return canvas;
-  } finally {
-    document.body.removeChild(clone);
-  }
+async function captureElement(element) {
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+  });
+  return canvas;
 }
 
-/**
- * PDF 다운로드
- */
 export async function downloadPDF(element, receiverName) {
   try {
-    const canvas = await captureDoc();
-
+    const canvas = await captureElement(element);
     const imgWidth = 210;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     const pageHeight = 297;
@@ -59,7 +33,6 @@ export async function downloadPDF(element, receiverName) {
 
     let position = 0;
     let remaining = imgHeight;
-
     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
 
     while (remaining > pageHeight) {
@@ -71,16 +44,13 @@ export async function downloadPDF(element, receiverName) {
 
     pdf.save(makeFileName(receiverName, 'pdf'));
   } catch (e) {
-    alert('PDF 생성 중 오류가 발생했습니다: ' + e.message);
+    alert('PDF 생성 오류: ' + e.message);
   }
 }
 
-/**
- * 이미지(PNG) 다운로드
- */
 export async function downloadImage(element, receiverName) {
   try {
-    const canvas = await captureDoc();
+    const canvas = await captureElement(element);
     const dataUrl = canvas.toDataURL('image/png');
 
     const link = document.createElement('a');
@@ -88,6 +58,6 @@ export async function downloadImage(element, receiverName) {
     link.href = dataUrl;
     link.click();
   } catch (e) {
-    alert('이미지 생성 중 오류가 발생했습니다: ' + e.message);
+    alert('이미지 생성 오류: ' + e.message);
   }
 }
