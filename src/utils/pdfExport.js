@@ -12,27 +12,12 @@ function makeFileName(receiverName, ext) {
  * ref로 전달받은 실제 화면에 표시된 요소를 캡처
  */
 async function captureElement(element) {
-  // 디버그: 요소 크기 확인
-  const w = element.offsetWidth;
-  const h = element.offsetHeight;
-  if (!w || !h) {
-    throw new Error(`요소 크기가 0입니다: ${w}x${h}`);
-  }
-
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
     backgroundColor: '#ffffff',
-    logging: true,
-    allowTaint: true,
+    logging: false,
   });
-
-  // 디버그: 캔버스 크기 확인
-  if (!canvas.width || !canvas.height) {
-    throw new Error(`캔버스 크기가 0입니다: ${canvas.width}x${canvas.height}`);
-  }
-
-  alert(`캡처 성공: 요소 ${w}x${h} → 캔버스 ${canvas.width}x${canvas.height}`);
   return canvas;
 }
 
