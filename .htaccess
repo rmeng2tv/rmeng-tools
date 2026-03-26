@@ -1,4 +1,38 @@
-Options -MultiViews
+# ── HTTPS 강제 리다이렉트 ──
 RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ── 디렉토리 목록 숨김 ──
+Options -Indexes -MultiViews
+
+# ── React SPA 라우팅 ──
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^ index.html [QR,L]
+RewriteRule ^ index.html [L]
+
+# ── 보안 헤더 ──
+<IfModule mod_headers.c>
+  # 클릭재킹 방지
+  Header set X-Frame-Options "SAMEORIGIN"
+  # XSS 보호
+  Header set X-XSS-Protection "1; mode=block"
+  # MIME 스니핑 방지
+  Header set X-Content-Type-Options "nosniff"
+  # Referrer 정보 제한
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ── 숨김 파일 접근 차단 (.htaccess, .env 등) ──
+<FilesMatch "^\.">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# ── 캐싱 (속도 향상) ──
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
