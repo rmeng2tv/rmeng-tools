@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import DocTemplate from './DocTemplate';
 
-// 페이지 하단 안전 여백 (이 영역에 걸치면 다음 페이지로)
+// 고정 페이지 높이 (프리뷰 패널 400px - padding 36px = 364px doc 너비 기준 A4 비율)
+const FIXED_PAGE_HEIGHT = 515;
+// 페이지 하단 안전 여백
 const BOTTOM_MARGIN = 16;
 // 2페이지 상단 여백
 const PAGE2_TOP_PAD = 24;
@@ -17,8 +19,7 @@ export default function PreviewPanel({ state, currentStep }) {
     const docEl = measureRef.current.querySelector('.doc');
     if (!docEl) return;
 
-    const docWidth = docEl.offsetWidth;
-    const ph = docWidth * (297 / 210);
+    const ph = FIXED_PAGE_HEIGHT;
     const contentHeight = docEl.scrollHeight;
     setPageHeight(ph);
 
