@@ -106,7 +106,7 @@ export default function Step2({ state, setDocStyle, onPrev, onNext }) {
     <div className="step active">
       <div className="snum">STEP 2 / 4</div>
       <div className="stitle">어떤 스타일로<br />만들까요?</div>
-      <div className="sdesc">클릭하면 오른쪽 미리보기가 바로 바뀌어요.</div>
+      <div className="sdesc"><span className="pc-only">클릭하면 오른쪽 미리보기가 바로 바뀌어요.</span><span className="mo-only">마음에 드는 스타일을 골라보세요.</span></div>
       <div className="scards">
         {STYLES.map(s => (
           <div

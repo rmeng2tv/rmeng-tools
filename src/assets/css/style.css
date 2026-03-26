@@ -255,15 +255,26 @@ body {
 .bredo { width: 100%; padding: 10px; background: none; color: var(--sub); border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .2s; }
 .bredo:hover { border-color: var(--sub); }
 
+/* ── PC/모바일 전용 텍스트 ── */
+.mo-only { display: none; }
+.pc-only { display: inline; }
+
 /* ── 반응형 ── */
 @media (max-width: 800px) {
+  .mo-only { display: inline; }
+  .pc-only { display: none; }
   .layout { grid-template-columns: 1fr; }
   .pvpanel { display: none; }
-  .step { padding: 32px 24px; padding-left: 24px; min-height: auto; justify-content: flex-start; padding-top: 40px; }
+  .step { padding: 32px 20px; min-height: auto; justify-content: flex-start; padding-top: 40px; overflow-x: hidden; }
   .scards { grid-template-columns: 1fr 1fr; }
   .stitle { font-size: 22px; }
-  .fg, .itbl, .taxbox, .preset-section, .addbtn { max-width: 100%; }
-  .ihdr, .irow { grid-template-columns: 1fr 72px 52px 72px 28px; gap: 4px; }
+  .fg, .itbl, .taxbox, .preset-section, .addbtn, .custom-input-row { max-width: 100%; width: 100%; }
+  .frow { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ihdr, .irow { grid-template-columns: 1fr 80px 44px 80px 24px; gap: 4px; font-size: 12px; }
+  .iinput { padding: 5px 6px; font-size: 12px; }
+  .preset-section { max-width: 100%; }
+  .pitem-row { padding: 8px 10px; gap: 8px; }
+  .stamp-section { max-width: 100%; }
   .overlay { right: 0; }
 }
 

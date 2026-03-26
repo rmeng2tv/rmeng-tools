@@ -23,7 +23,7 @@ export default function Step4({
   return (
     <div className="step active">
       <div className="snum">STEP 4 / 4</div>
-      <div className="stitle">마지막이에요! 내 회사 정보만 입력하면 끝!</div>
+      <div className="stitle">마지막이에요!<br />내 회사 정보만 입력하면 끝!</div>
       <div className="sdesc">한 번 입력하면 다음엔 자동으로 불러와요.</div>
 
       {/* 발신자 정보 */}

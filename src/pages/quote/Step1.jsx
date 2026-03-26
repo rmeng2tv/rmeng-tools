@@ -3,7 +3,7 @@ export default function Step1({ state, updateReceiver, onNext }) {
     <div className="step active">
       <div className="snum">STEP 1 / 4</div>
       <div className="stitle">누구에게 보내는<br />견적서인가요?</div>
-      <div className="sdesc">수신 업체명만 입력해도 견적서가 채워지기 시작해요.</div>
+      <div className="sdesc"><span className="pc-only">수신 업체명만 입력해도 견적서가 채워지기 시작해요.</span><span className="mo-only">수신 업체명부터 시작해볼까요?</span></div>
       <div className="fg">
         <div>
           <label className="flabel">수신 업체명 *</label>

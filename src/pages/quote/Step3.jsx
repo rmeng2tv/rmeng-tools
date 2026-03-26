@@ -37,7 +37,7 @@ export default function Step3({
     <div className="step active">
       <div className="snum">STEP 3 / 4</div>
       <div className="stitle">어떤 서비스를 제공하나요?</div>
-      <div className="sdesc">품목을 추가하면 오른쪽 견적서가 실시간으로 채워져요.</div>
+      <div className="sdesc"><span className="pc-only">품목을 추가하면 오른쪽 견적서가 실시간으로 채워져요.</span><span className="mo-only">품목과 금액을 입력해주세요.</span></div>
 
       {/* 품목 테이블 */}
       <div className="itbl">
