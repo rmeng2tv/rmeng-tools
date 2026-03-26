@@ -45,10 +45,21 @@ export default function QuoteWizard() {
     setCompleted(true);
   }
 
+  function makeFileName() {
+    const now = new Date();
+    const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const name = (state.receiver.name || '견적서').replace(/[\/\\:*?"<>|]/g, '_');
+    return `견적서_${name}_${date}`;
+  }
+
   async function handleDownloadPDF() {
     setCapturing(true);
     await new Promise(r => setTimeout(r, 500));
+    // 인쇄 시 파일명 = document.title
+    const origTitle = document.title;
+    document.title = makeFileName();
     window.print();
+    document.title = origTitle;
     setCapturing(false);
   }
 
