@@ -1,16 +1,24 @@
 const SUGGESTIONS = [
-  { key: 'bank', name: '입금 계좌 정보', desc: '선택 시 견적서 하단에 별도 박스로 표시', placeholder: '예) 국민은행 123-456-789 (홍길동)' },
-  { key: 'expiry', name: '견적 유효기간', desc: '선택 시 견적서 하단에 별도 박스로 표시', placeholder: '예) 발행일로부터 30일' },
-  { key: 'contact', name: '담당자 직통 연락처', desc: '선택 시 견적서 하단에 별도 박스로 표시', placeholder: '예) 010-0000-0000' },
-  { key: 'payment', name: '결제 조건', desc: '선택 시 견적서 하단에 별도 박스로 표시', placeholder: '예) 계약금 50%, 잔금 50%' },
+  { key: 'bank', name: '입금 계좌 정보', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '국민은행 123-456-789 (홍길동)' },
+  { key: 'expiry', name: '견적 유효기간', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '발행일로부터 30일' },
+  { key: 'contact', name: '담당자 직통 연락처', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '010-0000-0000' },
 ];
 
-export default function Complete({ show, state, toggleExtra, updateExtra, onDownloadPDF, onDownloadImage, onRedo }) {
+export default function Complete({ show, state, toggleExtra, updateExtra, onDownloadPDF, onDownloadImage, onBack }) {
   if (!show) return null;
 
+  function handleToggle(sug) {
+    const extra = state.extras[sug.key];
+    // 처음 켤 때 기본값 채워주기
+    if (!extra.on && !extra.value) {
+      updateExtra(sug.key, sug.defaultValue);
+    }
+    toggleExtra(sug.key);
+  }
+
   return (
-    <div className="overlay show">
-      <div className="ocard">
+    <div className="overlay show" onClick={onBack}>
+      <div className="ocard" onClick={e => e.stopPropagation()}>
         <div className="oicon">&#10003;</div>
         <div className="otitle">견적서 완성!</div>
         <div className="odesc">
@@ -26,7 +34,7 @@ export default function Complete({ show, state, toggleExtra, updateExtra, onDown
               <div
                 key={sug.key}
                 className={`sug-item${extra.on ? ' on' : ''}`}
-                onClick={() => toggleExtra(sug.key)}
+                onClick={() => handleToggle(sug)}
               >
                 <div className="sug-top">
                   <div className="sug-check">{extra.on ? '\u2713' : ''}</div>
@@ -36,7 +44,6 @@ export default function Complete({ show, state, toggleExtra, updateExtra, onDown
                 <div className="sug-input-wrap">
                   <input
                     className="sug-input"
-                    placeholder={sug.placeholder}
                     value={extra.value}
                     onClick={e => e.stopPropagation()}
                     onChange={e => updateExtra(sug.key, e.target.value)}
@@ -61,7 +68,7 @@ export default function Complete({ show, state, toggleExtra, updateExtra, onDown
           이미지 저장하기
         </button>
         <div className="adnotice">광고 1회 시청 후 무료 다운로드 (준비 중)</div>
-        <button className="bredo" onClick={onRedo}>처음부터 다시 만들기</button>
+        <button className="bredo" onClick={onBack}>이전</button>
       </div>
     </div>
   );

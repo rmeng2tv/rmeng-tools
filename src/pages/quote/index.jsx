@@ -25,6 +25,7 @@ export default function QuoteWizard() {
     updateSender,
     toggleMemo,
     editMemo,
+    deleteMemo,
     moveMemo,
     addMemo,
     updateStamp,
@@ -53,10 +54,9 @@ export default function QuoteWizard() {
     await downloadImage(docRef.current, state.receiver.name);
   }
 
-  function handleRedo() {
+  function handleBack() {
     setCompleted(false);
-    setCurrentStep(1);
-    resetAll();
+    setCurrentStep(4);
   }
 
   return (
@@ -97,6 +97,7 @@ export default function QuoteWizard() {
               updateSender={updateSender}
               toggleMemo={toggleMemo}
               editMemo={editMemo}
+              deleteMemo={deleteMemo}
               moveMemo={moveMemo}
               addMemo={addMemo}
               onPrev={() => goTo(3)}
@@ -119,7 +120,7 @@ export default function QuoteWizard() {
         updateExtra={updateExtra}
         onDownloadPDF={handleDownloadPDF}
         onDownloadImage={handleDownloadImage}
-        onRedo={handleRedo}
+        onBack={handleBack}
       />
     </>
   );

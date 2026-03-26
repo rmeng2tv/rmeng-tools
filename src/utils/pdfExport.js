@@ -24,6 +24,7 @@ async function captureElement(element) {
     useCORS: true,
     backgroundColor: '#ffffff',
     logging: false,
+    windowWidth: element.scrollWidth,
   });
 }
 

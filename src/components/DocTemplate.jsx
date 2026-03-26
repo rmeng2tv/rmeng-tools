@@ -5,6 +5,15 @@ import { fmtNumber } from '../utils/formatters';
 const now = new Date();
 const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 
+// 일련번호 (세션당 1회 생성, 있어 보이는 랜덤 코드)
+function generateDocNum() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return `QQ-${code.slice(0, 3)}${code.slice(3)}`;
+}
+const docNum = generateDocNum();
+
 export default function DocTemplate({ state, currentStep }) {
   const { receiver, docStyle, items, taxMode, sender, memoItems, extras } = state;
   const { supply, vat, total, vatLabel } = calcTax(items, taxMode);
@@ -12,7 +21,7 @@ export default function DocTemplate({ state, currentStep }) {
   const blurred = currentStep < 3;
   const filledItems = items.filter(i => i.name || i.price);
   const activeMemos = memoItems.filter(m => m.on);
-  const senderSub = [sender.ceo, sender.bizNum].filter(Boolean).join(' \u00B7 ');
+  const senderSub = [sender.ceo, sender.bizNum, sender.tel].filter(Boolean).join(' \u00B7 ');
 
   // 추가 제안 (extras)
   const extraMap = {
@@ -25,7 +34,7 @@ export default function DocTemplate({ state, currentStep }) {
 
   // 공통 영역: 수신/발신 메타
   const meta = (
-    <div className="doc-meta" style={docStyle === 'c' ? { borderLeft: '3px solid #2563eb' } : undefined}>
+    <div className="doc-meta">
       <div className="doc-mc">
         <span className="doc-ml">수신</span>
         <span className="doc-mv">{receiver.name || '\u2014'}</span>
@@ -89,21 +98,21 @@ export default function DocTemplate({ state, currentStep }) {
     </div>
   );
 
-  // 공통 영역: 메모
+  // 공통 영역: 메모 (각 항목을 개별 블록으로 분리)
   const memoSection = activeMemos.length > 0 && (
-    <div className="doc-memo">
+    <div className="doc-memo" data-break="memo">
       <div className="doc-memo-title">특이사항</div>
       {activeMemos.map(m => (
-        <div className="doc-memo-item" key={m.id}>{'\u2022'} {m.text}</div>
+        <div className="doc-memo-item" data-break="memo-item" key={m.id}>{'\u2022'} {m.text}</div>
       ))}
     </div>
   );
 
-  // 공통 영역: 추가 제안
+  // 공통 영역: 추가 제안 (각 박스를 개별 블록으로)
   const extrasSection = activeExtras.length > 0 && (
     <div className="doc-extras">
       {activeExtras.map(([key, val]) => (
-        <div className="doc-extra-box" key={key}>
+        <div className="doc-extra-box" data-break="extra" key={key}>
           <div className="doc-extra-label">{extraMap[key]}</div>
           <div className="doc-extra-val">{val.value || '입력 중...'}</div>
         </div>
@@ -119,7 +128,7 @@ export default function DocTemplate({ state, currentStep }) {
         <div className="doc-toprow">
           <div>
             <div className="doc-title">견 적 서</div>
-            <div className="doc-num">No. {now.getFullYear()}-001</div>
+            <div className="doc-num">{docNum}</div>
           </div>
           <div className="doc-date">{dateStr}</div>
         </div>
@@ -141,7 +150,7 @@ export default function DocTemplate({ state, currentStep }) {
       <div className="doc" style={{ paddingTop: 0 }}>
         <div className="doc-hblock">
           <div className="doc-title-w">견 적 서</div>
-          <div className="doc-num-w">No. {now.getFullYear()}-001</div>
+          <div className="doc-num-w">{docNum}</div>
         </div>
         <div className="doc-toprow" style={{ marginBottom: 11 }}>
           <div />
@@ -160,28 +169,67 @@ export default function DocTemplate({ state, currentStep }) {
   }
 
   // ── 스타일 C: 컬러 프리미엄 ──
-  return (
-    <div className="doc">
-      <div className="doc-adots">
-        <div className="doc-adot" style={{ background: '#2563eb' }} />
-        <div className="doc-adot" style={{ background: '#10b981' }} />
-        <div className="doc-adot" style={{ background: '#f59e0b' }} />
+  if (docStyle === 'c') {
+    return (
+      <div className="doc">
+        <div className="doc-adots">
+          <div className="doc-adot" style={{ background: '#2563eb' }} />
+          <div className="doc-adot" style={{ background: '#10b981' }} />
+          <div className="doc-adot" style={{ background: '#f59e0b' }} />
+        </div>
+        <div className="doc-toprow">
+          <div>
+            <div className="doc-title">견 적 서</div>
+            <div className="doc-num">{docNum}</div>
+          </div>
+          <div className="doc-date">{dateStr}</div>
+        </div>
+        {meta}
+        <div className={`bwrap${blurred ? ' blurred' : ' clear'}`}>
+          {itemTable}
+          {totBox}
+          {memoSection}
+          {extrasSection}
+        </div>
       </div>
+    );
+  }
+
+  // ── 스타일 D: 웜 내추럴 ──
+  return (
+    <div className="doc" style={{ background: '#faf8f5' }}>
+      <div style={{ height: 2, borderRadius: 1, marginBottom: 12, background: '#78716c' }} />
       <div className="doc-toprow">
         <div>
-          <div className="doc-title">견 적 서</div>
-          <div className="doc-num">No. {now.getFullYear()}-001</div>
+          <div className="doc-title" style={{ color: '#44403c' }}>견 적 서</div>
+          <div className="doc-num">{docNum}</div>
         </div>
         <div className="doc-date">{dateStr}</div>
       </div>
-      {meta}
+      <div className="doc-meta" style={{ background: '#f5f0eb' }}>
+        <div className="doc-mc">
+          <span className="doc-ml">수신</span>
+          <span className="doc-mv" style={{ color: '#44403c' }}>{receiver.name || '\u2014'}</span>
+          <span className="doc-msub">{receiver.person ? receiver.person + ' 귀하' : ''}</span>
+        </div>
+        <div className="doc-mc" style={{ textAlign: 'right' }}>
+          <span className="doc-ml">발신</span>
+          <span className="doc-mv" style={{ color: '#44403c' }}>{sender.name || '\u2014'}</span>
+          <span className="doc-msub">{senderSub}</span>
+        </div>
+      </div>
       <div className={`bwrap${blurred ? ' blurred' : ' clear'}`}>
         {itemTable}
-        {totBox}
+        <div className="dtot-wrap">
+          <div className="dtot" style={{ background: '#f5f0eb', borderColor: '#d6cfc7' }}>
+            <div className="dtr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
+            <div className="dtr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
+            <div className="dtr fin" style={{ color: '#78716c', borderColor: '#d6cfc7' }}><span>합계</span><span>{fmtNumber(total)}원</span></div>
+          </div>
+        </div>
         {memoSection}
         {extrasSection}
       </div>
-      {stampEl}
     </div>
   );
 }

@@ -77,6 +77,28 @@ const STYLES = [
       </div>
     ),
   },
+  {
+    id: 'd',
+    name: '웜 내추럴',
+    tag: '디자인 · 뷰티 · 인테리어',
+    preview: (
+      <div className="mp">
+        <div style={{ height: 3, background: '#78716c', borderRadius: 2, marginBottom: 5 }} />
+        <div style={{ width: 32, height: 6, background: '#78716c', borderRadius: 2, marginBottom: 4 }} />
+        <div className="mp-row">
+          <div className="mp-cell" style={{ background: '#f5f0eb', flex: 3 }} />
+          <div className="mp-cell" style={{ background: '#f5f0eb', flex: 1 }} />
+        </div>
+        <div className="mp-row">
+          <div className="mp-cell" style={{ background: '#ebe5de', flex: 3 }} />
+          <div className="mp-cell" style={{ background: '#ebe5de', flex: 1 }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 5 }}>
+          <div style={{ width: 44, height: 9, background: '#f5f0eb', border: '1px solid #d6cfc7', borderRadius: 3 }} />
+        </div>
+      </div>
+    ),
+  },
 ];
 
 export default function Step2({ state, setDocStyle, onPrev, onNext }) {

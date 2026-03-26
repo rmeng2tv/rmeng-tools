@@ -6,6 +6,7 @@ export default function Step4({
   updateSender,
   toggleMemo,
   editMemo,
+  deleteMemo,
   moveMemo,
   addMemo,
   onPrev,
@@ -22,7 +23,7 @@ export default function Step4({
   return (
     <div className="step active">
       <div className="snum">STEP 4 / 4</div>
-      <div className="stitle">마지막이에요!<br />내 회사 정보만 입력하면 완성</div>
+      <div className="stitle">마지막이에요! 내 회사 정보만 입력하면 끝!</div>
       <div className="sdesc">한 번 입력하면 다음엔 자동으로 불러와요.</div>
 
       {/* 발신자 정보 */}
@@ -49,7 +50,7 @@ export default function Step4({
         </div>
         <div className="frow">
           <div>
-            <label className="flabel">사업자번호</label>
+            <label className="flabel">사업자번호 (선택)</label>
             <input
               className="finput"
               placeholder="000-00-00000"
@@ -87,6 +88,7 @@ export default function Step4({
               memo={memo}
               onToggle={() => toggleMemo(memo.id)}
               onEdit={text => editMemo(memo.id, text)}
+              onDelete={() => deleteMemo(memo.id)}
               onMove={dir => moveMemo(memo.id, dir)}
             />
           ))}
@@ -114,11 +116,11 @@ export default function Step4({
 }
 
 /* ── 메모 아이템 (내부 컴포넌트) ── */
-function MemoItem({ memo, onToggle, onEdit, onMove }) {
+function MemoItem({ memo, onToggle, onEdit, onDelete, onMove }) {
   const textRef = useRef(null);
 
   function handleClick(e) {
-    if (e.target.closest('[contentEditable]') || e.target.closest('.obtn')) return;
+    if (e.target.closest('[contentEditable]') || e.target.closest('.obtn') || e.target.closest('.idel')) return;
     onToggle();
   }
 
@@ -146,6 +148,7 @@ function MemoItem({ memo, onToggle, onEdit, onMove }) {
           <button className="obtn" onClick={e => { e.stopPropagation(); onMove(-1); }}>&#9650;</button>
           <button className="obtn" onClick={e => { e.stopPropagation(); onMove(1); }}>&#9660;</button>
         </div>
+        <button className="idel" onClick={e => { e.stopPropagation(); onDelete(); }}>&times;</button>
       </div>
     </div>
   );

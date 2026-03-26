@@ -15,16 +15,26 @@ function saveJSON(key, value) {
 }
 
 // ── 기본 메모 프리셋 ──
+const MEMO_VERSION = 2; // 프리셋 변경 시 버전 올리면 자동 갱신
 const DEFAULT_MEMOS = [
-  { id: 1, text: '견적 유효기간: 발행일로부터 30일', on: false },
-  { id: 2, text: '부가세 별도 (세금계산서 발행 가능)', on: false },
-  { id: 3, text: '계약금 50%, 잔금 50% 조건', on: false },
-  { id: 4, text: '작업 완료 후 세금계산서 발행', on: false },
-  { id: 5, text: '재료비 변동 시 금액 조정 가능', on: false },
-  { id: 6, text: '방문 일정 협의 후 진행', on: false },
-  { id: 7, text: '샘플 확인 후 최종 견적 확정', on: false },
-  { id: 8, text: '무통장 입금 후 작업 시작', on: false },
+  { id: 1, text: '부가세 별도 (세금계산서 발행 가능)', on: false },
+  { id: 2, text: '계약금 50%, 잔금 50% 조건', on: false },
+  { id: 3, text: '작업 완료 후 세금계산서 발행', on: false },
+  { id: 4, text: '재료비 변동 시 금액 조정 가능', on: false },
+  { id: 5, text: '방문 일정 협의 후 진행', on: false },
+  { id: 6, text: '샘플 확인 후 최종 견적 확정', on: false },
+  { id: 7, text: '무통장 입금 후 작업 시작', on: false },
 ];
+
+function loadMemos() {
+  const savedVersion = loadJSON('qt_memos_v', 0);
+  if (savedVersion < MEMO_VERSION) {
+    saveJSON('qt_memos_v', MEMO_VERSION);
+    saveJSON('qt_memos', DEFAULT_MEMOS);
+    return DEFAULT_MEMOS;
+  }
+  return loadJSON('qt_memos', DEFAULT_MEMOS);
+}
 
 const DEFAULT_STAMP = {
   on: false,
@@ -49,7 +59,7 @@ function createInitialState() {
     items: [{ id: 1, name: '', price: 0, qty: 1 }],
     taxMode: 'normal',
     sender: loadJSON('qt_sender', DEFAULT_SENDER),
-    memoItems: loadJSON('qt_memos', DEFAULT_MEMOS),
+    memoItems: loadMemos(),
     stamp: loadJSON('qt_stamp', DEFAULT_STAMP),
     extras: {
       bank: { on: false, value: '' },
@@ -141,6 +151,13 @@ export default function useQuote() {
     }));
   }, []);
 
+  const deleteMemo = useCallback((id) => {
+    setState(prev => ({
+      ...prev,
+      memoItems: prev.memoItems.filter(m => m.id !== id),
+    }));
+  }, []);
+
   const moveMemo = useCallback((id, dir) => {
     setState(prev => {
       const list = [...prev.memoItems];
@@ -211,6 +228,7 @@ export default function useQuote() {
     updateSender,
     toggleMemo,
     editMemo,
+    deleteMemo,
     moveMemo,
     addMemo,
     updateStamp,
