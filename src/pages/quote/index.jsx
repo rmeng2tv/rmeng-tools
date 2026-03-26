@@ -48,9 +48,7 @@ export default function QuoteWizard() {
   async function handleDownloadPDF() {
     setCapturing(true);
     await new Promise(r => setTimeout(r, 500));
-    if (captureRef.current) {
-      await downloadPDF(captureRef.current, state.receiver.name);
-    }
+    window.print();
     setCapturing(false);
   }
 
@@ -131,9 +129,9 @@ export default function QuoteWizard() {
         onBack={handleBack}
       />
 
-      {/* 캡처용 — 다운로드 시 잠깐 표시 */}
+      {/* 캡처/인쇄용 — 다운로드 시 잠깐 표시 */}
       {capturing && (
-        <div style={{
+        <div className="print-target" style={{
           position: 'fixed', top: 0, left: 0, width: 380, padding: 16,
           zIndex: 99999, background: '#fff',
         }}>

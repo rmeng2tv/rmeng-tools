@@ -262,3 +262,43 @@ body {
   .step { padding: 32px 24px; }
   .scards { grid-template-columns: 1fr 1fr; }
 }
+
+/* ── 인쇄 (PDF 저장용) ── */
+@media print {
+  /* 모든 UI 숨기기 */
+  body { background: #fff; margin: 0; padding: 0; }
+  .prog-track, .hdr, .layout, .overlay { display: none !important; }
+
+  /* 캡처용 오버레이만 표시 */
+  .print-target {
+    position: static !important;
+    width: 100% !important;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 !important;
+    background: #fff !important;
+    z-index: auto !important;
+  }
+  .print-target .doc {
+    border: none;
+    padding: 24px;
+    font-size: 11px;
+    min-height: auto;
+    page-break-inside: auto;
+  }
+  .print-target .doc-title { font-size: 18px; }
+  .print-target .doc-mv { font-size: 13px; }
+  .print-target .doc-meta { padding: 10px 14px; }
+  .print-target .dtbl th { font-size: 9px; padding: 6px 8px; }
+  .print-target .dtbl td { font-size: 11px; padding: 5px 8px; }
+  .print-target .dtr { font-size: 10px; }
+  .print-target .dtr.fin { font-size: 13px; }
+  .print-target .doc-memo-item { font-size: 10px; }
+  .print-target .doc-extra-val { font-size: 11px; }
+  .print-target .bwrap { filter: none !important; opacity: 1 !important; }
+
+  /* 페이지 설정 */
+  @page { margin: 12mm; size: A4; }
+  .doc-memo, .doc-extra-box { page-break-inside: avoid; }
+  .dtot-wrap { page-break-inside: avoid; }
+}

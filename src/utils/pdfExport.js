@@ -13,7 +13,7 @@ function makeFileName(receiverName, ext) {
  */
 async function captureElement(element) {
   const canvas = await html2canvas(element, {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     backgroundColor: '#ffffff',
     logging: false,
