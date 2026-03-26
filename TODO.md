@@ -37,12 +37,12 @@
 
 ## Phase 3 — 위저드 UI
 
-- [ ] `ProgressBar.jsx` — 상단 진행바 + 점 4개
-- [ ] `Step1.jsx` — 수신자 입력
-- [ ] `Step2.jsx` — 스타일 선택 3종 카드
-- [ ] `Step3.jsx` — 품목 테이블 + 세금 유도 질문
-- [ ] `Step4.jsx` — 발신자 + 메모 프리셋 + 도장
-- [ ] `Complete.jsx` — 완성 오버레이 + 추가 제안 4개
+- [x] `ProgressBar.jsx` — 상단 진행바 + 점 4개
+- [x] `Step1.jsx` — 수신자 입력
+- [x] `Step2.jsx` — 스타일 선택 3종 카드
+- [x] `Step3.jsx` — 품목 테이블 + 세금 유도 질문
+- [x] `Step4.jsx` — 발신자 + 메모 프리셋 + 도장
+- [x] `Complete.jsx` — 완성 오버레이 + 추가 제안 4개
 
 ---
 
