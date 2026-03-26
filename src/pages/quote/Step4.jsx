@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { fmtTel, fmtBiz } from '../../utils/formatters';
-import StampSection from './StampSection';
 
 export default function Step4({
   state,
@@ -9,7 +8,6 @@ export default function Step4({
   editMemo,
   moveMemo,
   addMemo,
-  updateStamp,
   onPrev,
   onFinish,
 }) {
@@ -105,13 +103,7 @@ export default function Step4({
         </div>
       </div>
 
-      {/* 도장 (독립 섹션 — 추후 수정/삭제 용이) */}
-      <StampSection
-        stamp={state.stamp}
-        senderName={state.sender.name}
-        senderCeo={state.sender.ceo}
-        updateStamp={updateStamp}
-      />
+      {/* 도장 — 추후 고객 반응 확인 후 추가 예정 */}
 
       <div className="bgrp">
         <button className="bback" onClick={onPrev}>이전</button>

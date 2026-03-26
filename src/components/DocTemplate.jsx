@@ -1,14 +1,12 @@
-import { useRef, useEffect } from 'react';
 import { calcTax } from '../utils/taxCalc';
 import { fmtNumber } from '../utils/formatters';
-import { drawStamp } from './StampCanvas';
 
 // 오늘 날짜 문자열
 const now = new Date();
 const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 
 export default function DocTemplate({ state, currentStep }) {
-  const { receiver, docStyle, items, taxMode, sender, memoItems, stamp, extras } = state;
+  const { receiver, docStyle, items, taxMode, sender, memoItems, extras } = state;
   const { supply, vat, total, vatLabel } = calcTax(items, taxMode);
 
   const blurred = currentStep < 3;
@@ -113,16 +111,6 @@ export default function DocTemplate({ state, currentStep }) {
     </div>
   );
 
-  // 도장
-  const stampEl = stamp.on && (
-    <StampPreview
-      stampStyle={stamp.style}
-      color={stamp.color}
-      t1={sender.name || '회사명'}
-      t2={sender.ceo || '대표자'}
-    />
-  );
-
   // ── 스타일 A: 모던 미니멀 ──
   if (docStyle === 'a') {
     return (
@@ -142,7 +130,7 @@ export default function DocTemplate({ state, currentStep }) {
           {memoSection}
           {extrasSection}
         </div>
-        {stampEl}
+        {/* 도장 — 추후 추가 예정 */}
       </div>
     );
   }
@@ -166,7 +154,7 @@ export default function DocTemplate({ state, currentStep }) {
           {memoSection}
           {extrasSection}
         </div>
-        {stampEl}
+        {/* 도장 — 추후 추가 예정 */}
       </div>
     );
   }
@@ -194,24 +182,6 @@ export default function DocTemplate({ state, currentStep }) {
         {extrasSection}
       </div>
       {stampEl}
-    </div>
-  );
-}
-
-// ── 도장 프리뷰 (Canvas) ──
-function StampPreview({ stampStyle, color, t1, t2 }) {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      drawStamp(canvasRef.current, stampStyle, t1, t2, color);
-    }
-  }, [stampStyle, color, t1, t2]);
-
-  return (
-    <div className="stamp-wrap">
-      <div className="stamp-drag-hint">드래그로 위치 이동</div>
-      <canvas ref={canvasRef} width={80} height={80} />
     </div>
   );
 }

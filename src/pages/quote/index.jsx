@@ -90,7 +90,6 @@ export default function QuoteWizard() {
               editMemo={editMemo}
               moveMemo={moveMemo}
               addMemo={addMemo}
-              updateStamp={updateStamp}
               onPrev={() => goTo(3)}
               onFinish={handleFinish}
             />
