@@ -50,7 +50,7 @@ body {
 .layout { display: grid; grid-template-columns: 1fr 400px; min-height: 100vh; padding-top: 59px; }
 
 /* ── 스텝 공통 ── */
-.step { display: none; flex-direction: column; justify-content: center; min-height: calc(100vh - 59px); padding: 40px 60px; animation: sIn .3s ease; }
+.step { display: none; flex-direction: column; justify-content: center; min-height: calc(100vh - 59px); padding: 40px 60px; padding-left: 12%; animation: sIn .3s ease; }
 .step.active { display: flex; }
 @keyframes sIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: translateX(0); } }
 .snum { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
