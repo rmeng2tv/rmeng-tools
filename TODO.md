@@ -48,10 +48,10 @@
 
 ## Phase 4 — 프리뷰 + 문서 렌더링
 
-- [ ] `PreviewPanel.jsx` — 우측 실시간 프리뷰
-- [ ] `DocTemplate.jsx` — 스타일 3종 (A/B/C) 렌더링
-- [ ] 블러 해제 애니메이션 (Step3 진입 시)
-- [ ] 도장 드래그 위치 조정
+- [x] `PreviewPanel.jsx` — 우측 실시간 프리뷰
+- [x] `DocTemplate.jsx` — 스타일 3종 (A/B/C) 렌더링
+- [x] 블러 해제 애니메이션 (Step3 진입 시)
+- [ ] 도장 드래그 위치 조정 ← Phase 5와 함께 진행
 
 ---
 
