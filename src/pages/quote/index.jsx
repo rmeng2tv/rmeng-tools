@@ -155,7 +155,7 @@ export default function QuoteWizard() {
           position: 'fixed', top: 0, left: 0, width: 680, padding: 20,
           zIndex: 99999, background: '#fff',
         }}>
-          <div ref={captureRef}>
+          <div ref={captureRef} style={{ minHeight: 680 * (297 / 210) - 40 }}>
             <DocTemplate state={state} currentStep={99} />
           </div>
         </div>
