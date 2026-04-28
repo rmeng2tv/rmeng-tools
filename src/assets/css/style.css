@@ -78,7 +78,8 @@ body {
 .scard:hover { border-color: #93c5fd; box-shadow: 0 4px 16px rgba(37,99,235,.1); }
 .scard.sel { border-color: var(--primary); background: var(--pl); }
 .scard.sel::after { content: '\2713'; position: absolute; top: 9px; right: 11px; font-size: 11px; font-weight: 800; color: var(--primary); }
-.spbox { height: 72px; border-radius: 6px; margin-bottom: 9px; overflow: hidden; border: 1px solid var(--bl); background: #fff; }
+.spbox { height: 210px; border-radius: 6px; margin-bottom: 9px; overflow: hidden; border: 1px solid var(--bl); background: #fff; position: relative; pointer-events: none; }
+.mini-doc-wrap { width: 794px; transform-origin: top left; transform: scale(0.16); position: absolute; top: 0; left: 0; }
 .scard-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
 .scard-tag { font-size: 11px; color: var(--muted); }
 .mp { padding: 7px; display: flex; flex-direction: column; gap: 3px; }
