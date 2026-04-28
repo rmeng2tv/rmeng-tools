@@ -27,6 +27,8 @@ export default function QuoteWizard() {
     state,
     updateReceiver,
     setDocStyle,
+    setQuoteTitle,
+    toggleShowSpec,
     addItem,
     updateItem,
     deleteItem,
@@ -37,6 +39,7 @@ export default function QuoteWizard() {
     deleteMemo,
     moveMemo,
     addMemo,
+    restoreDefaultMemos,
     updateStamp,
     toggleExtra,
     updateExtra,
@@ -94,6 +97,7 @@ export default function QuoteWizard() {
             <Step1
               state={state}
               updateReceiver={updateReceiver}
+              setQuoteTitle={setQuoteTitle}
               onNext={() => goTo(2)}
             />
           )}
@@ -112,6 +116,7 @@ export default function QuoteWizard() {
               updateItem={updateItem}
               deleteItem={deleteItem}
               setTaxMode={setTaxMode}
+              toggleShowSpec={toggleShowSpec}
               onPrev={() => goTo(2)}
               onNext={() => goTo(4)}
             />
@@ -125,6 +130,7 @@ export default function QuoteWizard() {
               deleteMemo={deleteMemo}
               moveMemo={moveMemo}
               addMemo={addMemo}
+              restoreDefaultMemos={restoreDefaultMemos}
               onPrev={() => goTo(3)}
               onFinish={handleFinish}
             />

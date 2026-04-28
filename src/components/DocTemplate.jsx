@@ -1,6 +1,8 @@
 import { calcTax } from '../utils/taxCalc';
 import { fmtNumber } from '../utils/formatters';
 
+const MID = ' · ';
+
 // 날짜 문자열 변환 (YYYY-MM-DD → YYYY.MM.DD)
 function formatDate(dateValue) {
   if (dateValue && dateValue.includes('-')) {
@@ -10,7 +12,7 @@ function formatDate(dateValue) {
   return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 }
 
-// 일련번호 (세션당 1회 생성, 있어 보이는 랜덤 코드)
+// 일련번호 (세션당 1회 생성)
 function generateDocNum() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -20,19 +22,31 @@ function generateDocNum() {
 const docNum = generateDocNum();
 
 export default function DocTemplate({ state, currentStep }) {
-  const { receiver, docStyle, items, taxMode, sender, memoItems, extras } = state;
+  const { receiver, docStyle, quoteTitle, showSpec, items, taxMode, sender, memoItems, extras } = state;
   const { supply, vat, total, vatLabel } = calcTax(items, taxMode);
 
-  // 견적 작성일 (extras.date가 설정되면 해당 날짜, 아니면 오늘)
   const dateStr = (extras.date?.on && extras.date?.value) ? formatDate(extras.date.value) : formatDate();
 
   const blurred = currentStep < 3;
   const filledItems = items.filter(i => i.name || i.price);
   const activeMemos = memoItems.filter(m => m.on);
-  const senderLine2 = sender.ceo ? sender.ceo + ' 대표' : '';
-  const senderLine3 = [sender.bizNum, sender.tel].filter(Boolean).join(' \u00B7 ');
 
-  // 추가 제안 (extras)
+  // 발신자 부가 라인
+  const senderLine2 = sender.ceo ? sender.ceo + ' 대표' : '';
+  const senderLine3 = [sender.bizNum, sender.tel].filter(Boolean).join(MID);
+
+  // ── 수신자 표시 분기 (개인/사업자) ──
+  const isBiz = receiver.type === 'business';
+  const receiverName = receiver.name || '—';
+  const receiverHonor = isBiz ? '귀중' : '님 귀하';
+  const receiverNameLine = `${receiverName} ${receiverHonor}`;
+  const bizPersonLine = isBiz ? [
+    receiver.ceo ? `대표 ${receiver.ceo}` : '',
+    receiver.person ? `담당 ${receiver.person} 귀하` : '',
+  ].filter(Boolean).join(MID) : '';
+  const bizNumLine = (isBiz && receiver.bizNum) ? `사업자등록번호 ${receiver.bizNum}` : '';
+  const receiverContactLine = [receiver.phone, receiver.address].filter(Boolean).join(MID);
+
   const extraMap = {
     bank: '입금 계좌',
     expiry: '견적 유효기간',
@@ -41,206 +55,187 @@ export default function DocTemplate({ state, currentStep }) {
   };
   const activeExtras = Object.entries(extras).filter(([key, v]) => v.on && key !== 'date');
 
-  // 공통 영역: 수신/발신 메타
-  const meta = (
-    <div className="doc-meta">
-      <div className="doc-mc">
-        <span className="doc-ml">수신</span>
-        <span className="doc-mv">{receiver.name || '\u2014'}</span>
-        <span className="doc-msub">{receiver.person ? receiver.person + ' 귀하' : ''}</span>
-      </div>
-      <div className="doc-mc" style={{ textAlign: 'right' }}>
-        <span className="doc-ml">발신</span>
-        <span className="doc-mv">{sender.name || '\u2014'}</span>
-        {senderLine2 && <span className="doc-msub">{senderLine2}</span>}
-        {senderLine3 && <span className="doc-msub">{senderLine3}</span>}
-      </div>
-    </div>
+  // 품목 컬럼 수
+  const colSpan = showSpec ? 5 : 4;
+
+  // 품목 행
+  const itemRows = filledItems.length === 0 ? (
+    <tr>
+      <td colSpan={colSpan} className="d-empty">품목을 입력하면 여기에 표시돼요</td>
+    </tr>
+  ) : (
+    filledItems.map(item => (
+      <tr key={item.id}>
+        <td>{item.name || '—'}</td>
+        {showSpec && <td className="d-spec">{item.spec || '—'}</td>}
+        <td className="r">{item.price ? fmtNumber(item.price) + '원' : '—'}</td>
+        <td className="r">{item.qty}</td>
+        <td className="r">{item.price ? fmtNumber(item.price * item.qty) + '원' : '—'}</td>
+      </tr>
+    ))
   );
 
-  // 공통 영역: 품목 테이블
-  const itemTable = (
-    <table className="dtbl">
-      <thead>
-        <tr style={docStyle === 'c' ? { background: '#dcfce7' } : undefined}>
-          <th>품목명</th>
-          <th style={{ textAlign: 'right' }}>단가</th>
-          <th style={{ textAlign: 'right' }}>수량</th>
-          <th style={{ textAlign: 'right' }}>금액</th>
-        </tr>
-      </thead>
-      <tbody>
-        {filledItems.length === 0 ? (
-          <tr>
-            <td colSpan={4} style={{ textAlign: 'center', color: 'var(--muted)', padding: 14, fontSize: 10 }}>
-              품목을 입력하면 여기에 표시돼요
-            </td>
-          </tr>
-        ) : (
-          filledItems.map(item => (
-            <tr key={item.id}>
-              <td>{item.name || '\u2014'}</td>
-              <td className="r">{item.price ? fmtNumber(item.price) + '원' : '\u2014'}</td>
-              <td className="r">{item.qty}</td>
-              <td className="r">{item.price ? fmtNumber(item.price * item.qty) + '원' : '\u2014'}</td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
+  // 테이블 헤더
+  const tblHead = (
+    <thead>
+      <tr>
+        <th>품목명</th>
+        {showSpec && <th>규격</th>}
+        <th className="r">단가</th>
+        <th className="r">수량</th>
+        <th className="r">금액</th>
+      </tr>
+    </thead>
   );
 
-  // 공통 영역: 합계
-  const totStyle = docStyle === 'c'
-    ? { background: '#dcfce7', borderColor: '#bbf7d0' }
-    : undefined;
-  const finStyle = docStyle === 'c'
-    ? { color: '#16a34a', borderColor: '#bbf7d0' }
-    : undefined;
-
-  const totBox = (
-    <div className="dtot-wrap">
-      <div className="dtot" style={totStyle}>
-        <div className="dtr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
-        <div className="dtr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
-        <div className="dtr fin" style={finStyle}><span>합계</span><span>{fmtNumber(total)}원</span></div>
-      </div>
-    </div>
-  );
-
-  // 공통 영역: 메모 (각 항목을 개별 블록으로 분리)
+  // 메모 섹션
   const memoSection = activeMemos.length > 0 && (
-    <div className="doc-memo" data-break="memo">
-      <div className="doc-memo-title">특이사항</div>
+    <div className="d-memo" data-break="memo">
+      <div className="d-memo-title">특이사항</div>
       {activeMemos.map(m => (
-        <div className="doc-memo-item" data-break="memo-item" key={m.id}>{'\u2022'} {m.text}</div>
+        <div className="d-memo-item" data-break="memo-item" key={m.id}>{'•'} {m.text}</div>
       ))}
     </div>
   );
 
-  // 공통 영역: 추가 제안 (각 박스를 개별 블록으로)
+  // 추가 제안 섹션
   const extrasSection = activeExtras.length > 0 && (
-    <div className="doc-extras">
+    <div className="d-extras">
       {activeExtras.map(([key, val]) => (
-        <div className="doc-extra-box" data-break="extra" key={key}>
-          <div className="doc-extra-label">{extraMap[key]}</div>
-          <div className="doc-extra-val">{val.value || '입력 중...'}</div>
+        <div className="d-extra-box" data-break="extra" key={key}>
+          <div className="d-extra-label">{extraMap[key]}</div>
+          <div className="d-extra-val">{val.value || '입력 중...'}</div>
         </div>
       ))}
     </div>
   );
 
-  // ── 스타일 A: 모던 미니멀 ──
+  // 수신자/발신자 메타 (스타일별 prefix만 다름)
+  const receiverMeta = (prefix) => (
+    <div className={`${prefix}-mc`}>
+      <span className={`${prefix}-ml`}>수신</span>
+      <span className={`${prefix}-mv`}>{receiverNameLine}</span>
+      {bizPersonLine && <span className={`${prefix}-msub`}>{bizPersonLine}</span>}
+      {bizNumLine && <span className={`${prefix}-msub`}>{bizNumLine}</span>}
+      {receiverContactLine && <span className={`${prefix}-msub`}>{receiverContactLine}</span>}
+    </div>
+  );
+
+  const senderMeta = (prefix) => (
+    <div className={`${prefix}-mc`} style={{ textAlign: 'right' }}>
+      <span className={`${prefix}-ml`}>발신</span>
+      <span className={`${prefix}-mv`}>{sender.name || '—'}</span>
+      {senderLine2 && <span className={`${prefix}-msub`}>{senderLine2}</span>}
+      {senderLine3 && <span className={`${prefix}-msub`}>{senderLine3}</span>}
+    </div>
+  );
+
+  // ── 스타일 A: 모던 미니멀 (인디고) ──
   if (docStyle === 'a') {
     return (
-      <div className="doc">
-        <div className="doc-topbar" />
-        <div className="doc-toprow">
+      <div className="sa">
+        <div className="sa-topbar" />
+        <div className="sa-toprow">
           <div>
-            <div className="doc-title">견 적 서</div>
-            <div className="doc-num">{docNum}</div>
+            <div className="sa-title">견 적 서</div>
+            {quoteTitle && <div className="sa-subtitle">{quoteTitle}</div>}
+            <div className="sa-num">{docNum}</div>
           </div>
-          <div className="doc-date">{dateStr}</div>
+          <div className="sa-date">{dateStr}</div>
         </div>
-        {meta}
-        <div className={`bwrap${blurred ? ' blurred' : ' clear'}`}>
-          {itemTable}
-          {totBox}
+        <div className="sa-meta">
+          {receiverMeta('sa')}
+          {senderMeta('sa')}
+        </div>
+        <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
+          <table className="sa-tbl">
+            {tblHead}
+            <tbody>{itemRows}</tbody>
+          </table>
+          <div className="sa-tot-wrap">
+            <div className="sa-tot">
+              <div className="sa-tr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
+              <div className="sa-tr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
+              <div className="sa-tr fin"><span>합계</span><span>{fmtNumber(total)}원</span></div>
+            </div>
+          </div>
           {memoSection}
           {extrasSection}
         </div>
-        {/* 도장 — 추후 추가 예정 */}
+        <div className="sa-footer" />
       </div>
     );
   }
 
-  // ── 스타일 B: 클래식 비즈 ──
+  // ── 스타일 B: 클래식 비즈 (블랙) ──
   if (docStyle === 'b') {
     return (
-      <div className="doc" style={{ paddingTop: 0 }}>
-        <div className="doc-hblock">
-          <div className="doc-title-w">견 적 서</div>
-          <div className="doc-num-w">{docNum}</div>
+      <div className="sb">
+        <div className="sb-hblock">
+          <div className="sb-title">견 적 서</div>
+          {quoteTitle && <div className="sb-subtitle">{quoteTitle}</div>}
+          <div className="sb-num">{docNum}</div>
         </div>
-        <div className="doc-toprow" style={{ marginBottom: 11 }}>
+        <div className="sb-toprow">
           <div />
-          <div className="doc-date">{dateStr}</div>
+          <div className="sb-date">{dateStr}</div>
         </div>
-        {meta}
-        <div className={`bwrap${blurred ? ' blurred' : ' clear'}`}>
-          {itemTable}
-          {totBox}
-          {memoSection}
-          {extrasSection}
+        <div className="sb-meta">
+          {receiverMeta('sb')}
+          {senderMeta('sb')}
         </div>
-        {/* 도장 — 추후 추가 예정 */}
-      </div>
-    );
-  }
-
-  // ── 스타일 C: 컬러 프리미엄 ──
-  if (docStyle === 'c') {
-    return (
-      <div className="doc">
-        <div className="doc-adots">
-          <div className="doc-adot" style={{ background: '#2563eb' }} />
-          <div className="doc-adot" style={{ background: '#10b981' }} />
-          <div className="doc-adot" style={{ background: '#f59e0b' }} />
-        </div>
-        <div className="doc-toprow">
-          <div>
-            <div className="doc-title">견 적 서</div>
-            <div className="doc-num">{docNum}</div>
+        <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
+          <table className="sb-tbl">
+            {tblHead}
+            <tbody>{itemRows}</tbody>
+          </table>
+          <div className="sb-tot-wrap">
+            <div className="sb-tot">
+              <div className="sb-tr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
+              <div className="sb-tr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
+              <div className="sb-tr fin"><span>합계</span><span>{fmtNumber(total)}원</span></div>
+            </div>
           </div>
-          <div className="doc-date">{dateStr}</div>
-        </div>
-        {meta}
-        <div className={`bwrap${blurred ? ' blurred' : ' clear'}`}>
-          {itemTable}
-          {totBox}
           {memoSection}
           {extrasSection}
         </div>
+        <div className="sb-footer" />
       </div>
     );
   }
 
-  // ── 스타일 D: 웜 내추럴 ──
+  // ── 스타일 C: 에메랄드 ──
   return (
-    <div className="doc" style={{ background: '#faf8f5' }}>
-      <div style={{ height: 2, borderRadius: 1, marginBottom: 12, background: '#78716c' }} />
-      <div className="doc-toprow">
+    <div className="sc">
+      <div className="sc-eyebrow">QUOTATION</div>
+      <div className="sc-toprow">
         <div>
-          <div className="doc-title" style={{ color: '#44403c' }}>견 적 서</div>
-          <div className="doc-num">{docNum}</div>
+          <div className="sc-title">견 적 서</div>
+          {quoteTitle && <div className="sc-subtitle">{quoteTitle}</div>}
+          <div className="sc-num">{docNum}</div>
         </div>
-        <div className="doc-date">{dateStr}</div>
+        <div className="sc-date">{dateStr}</div>
       </div>
-      <div className="doc-meta" style={{ background: '#f5f0eb' }}>
-        <div className="doc-mc">
-          <span className="doc-ml">수신</span>
-          <span className="doc-mv" style={{ color: '#44403c' }}>{receiver.name || '\u2014'}</span>
-          <span className="doc-msub">{receiver.person ? receiver.person + ' 귀하' : ''}</span>
-        </div>
-        <div className="doc-mc" style={{ textAlign: 'right' }}>
-          <span className="doc-ml">발신</span>
-          <span className="doc-mv" style={{ color: '#44403c' }}>{sender.name || '\u2014'}</span>
-          {senderLine2 && <span className="doc-msub">{senderLine2}</span>}
-          {senderLine3 && <span className="doc-msub">{senderLine3}</span>}
-        </div>
+      <div className="sc-meta">
+        {receiverMeta('sc')}
+        {senderMeta('sc')}
       </div>
-      <div className={`bwrap${blurred ? ' blurred' : ' clear'}`}>
-        {itemTable}
-        <div className="dtot-wrap">
-          <div className="dtot" style={{ background: '#f5f0eb', borderColor: '#d6cfc7' }}>
-            <div className="dtr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
-            <div className="dtr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
-            <div className="dtr fin" style={{ color: '#78716c', borderColor: '#d6cfc7' }}><span>합계</span><span>{fmtNumber(total)}원</span></div>
+      <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
+        <table className="sc-tbl">
+          {tblHead}
+          <tbody>{itemRows}</tbody>
+        </table>
+        <div className="sc-tot-wrap">
+          <div className="sc-tot">
+            <div className="sc-tr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
+            <div className="sc-tr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
+            <div className="sc-tr fin"><span>합계</span><span>{fmtNumber(total)}원</span></div>
           </div>
         </div>
         {memoSection}
         {extrasSection}
       </div>
+      <div className="sc-footer" />
     </div>
   );
 }

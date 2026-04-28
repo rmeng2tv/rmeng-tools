@@ -9,6 +9,7 @@ export default function Step4({
   deleteMemo,
   moveMemo,
   addMemo,
+  restoreDefaultMemos,
   onPrev,
   onFinish,
 }) {
@@ -93,6 +94,7 @@ export default function Step4({
             />
           ))}
         </div>
+        <button className="restore-btn" onClick={restoreDefaultMemos}>기본 문구 복원</button>
         <div className="custom-input-row">
           <input
             className="custom-input"

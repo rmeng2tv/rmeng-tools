@@ -1,5 +1,11 @@
 node_modules
 dist
+dist-upload.zip
 .env
 .env.local
 *.log
+
+# Editor/IDE
+.vscode/
+.claude/
+.idea/

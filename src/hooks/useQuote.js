@@ -54,9 +54,19 @@ const DEFAULT_SENDER = {
 // ── 초기 상태 생성 (localStorage 반영) ──
 function createInitialState() {
   return {
-    receiver: { name: '', person: '' },
+    receiver: {
+      type: 'business',  // 'business' | 'individual'
+      name: '',
+      ceo: '',
+      person: '',
+      bizNum: '',
+      phone: '',
+      address: '',
+    },
     docStyle: 'a',
-    items: [{ id: 1, name: '', price: 0, qty: 1 }],
+    quoteTitle: '',
+    showSpec: false,
+    items: [{ id: 1, name: '', spec: '', price: 0, qty: 1 }],
     taxMode: 'normal',
     sender: loadJSON('qt_sender', DEFAULT_SENDER),
     memoItems: loadMemos(),
@@ -95,12 +105,22 @@ export default function useQuote() {
     setState(prev => ({ ...prev, docStyle: style }));
   }, []);
 
+  // ── 견적 제목 ──
+  const setQuoteTitle = useCallback((title) => {
+    setState(prev => ({ ...prev, quoteTitle: title }));
+  }, []);
+
+  // ── 규격 컬럼 토글 ──
+  const toggleShowSpec = useCallback(() => {
+    setState(prev => ({ ...prev, showSpec: !prev.showSpec }));
+  }, []);
+
   // ── 품목 ──
   const addItem = useCallback(() => {
     setNextItemId(prev => prev + 1);
     setState(prev => ({
       ...prev,
-      items: [...prev.items, { id: nextItemId, name: '', price: 0, qty: 1 }],
+      items: [...prev.items, { id: nextItemId, name: '', spec: '', price: 0, qty: 1 }],
     }));
   }, [nextItemId]);
 
@@ -179,6 +199,17 @@ export default function useQuote() {
     }));
   }, [nextMemoId]);
 
+  const restoreDefaultMemos = useCallback(() => {
+    setState(prev => {
+      const existingTexts = prev.memoItems.map(m => m.text);
+      const missing = DEFAULT_MEMOS.filter(d => !existingTexts.includes(d.text));
+      if (missing.length === 0) return prev;
+      const restored = missing.map((m, i) => ({ ...m, id: nextMemoId + i, on: false }));
+      setNextMemoId(prev2 => prev2 + missing.length);
+      return { ...prev, memoItems: [...prev.memoItems, ...restored] };
+    });
+  }, [nextMemoId]);
+
   // ── 도장 ──
   const updateStamp = useCallback((updates) => {
     setState(prev => ({
@@ -222,6 +253,8 @@ export default function useQuote() {
     state,
     updateReceiver,
     setDocStyle,
+    setQuoteTitle,
+    toggleShowSpec,
     addItem,
     updateItem,
     deleteItem,
@@ -233,6 +266,7 @@ export default function useQuote() {
     moveMemo,
     addMemo,
     updateStamp,
+    restoreDefaultMemos,
     toggleExtra,
     updateExtra,
     resetAll,

@@ -1,67 +1,37 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import DocTemplate from './DocTemplate';
 
-// 고정 페이지 높이 (프리뷰 패널 400px - padding 36px = 364px doc 너비 기준 A4 비율)
-const FIXED_PAGE_HEIGHT = 515;
-// 페이지 하단 안전 여백
-const BOTTOM_MARGIN = 16;
-// 2페이지 상단 여백
-const PAGE2_TOP_PAD = 24;
+const A4_WIDTH = 794;
+const PADDING = 40; // .preview-frame 좌우 padding 합계 (20px * 2)
 
 export default function PreviewPanel({ state, currentStep }) {
   const { receiver, sender, items } = state;
-  const measureRef = useRef(null);
-  const [pageHeight, setPageHeight] = useState(0);
-  const [breakPoints, setBreakPoints] = useState([]);
+  const frameRef = useRef(null);
+  const containerRef = useRef(null);
+  const [scale, setScale] = useState(1);
 
-  const calcBreaks = useCallback(() => {
-    if (!measureRef.current) return;
-    const docEl = measureRef.current.querySelector('.doc');
-    if (!docEl) return;
+  // 컨테이너 폭 기준 scale + 컨테이너 높이 동적 계산
+  const calcScale = useCallback(() => {
+    if (!containerRef.current || !frameRef.current) return;
+    const containerW = containerRef.current.clientWidth - PADDING;
+    const s = Math.min(containerW / A4_WIDTH, 1);
+    setScale(s);
 
-    const ph = FIXED_PAGE_HEIGHT;
-    const contentHeight = docEl.scrollHeight;
-    setPageHeight(ph);
-
-    if (contentHeight <= ph - BOTTOM_MARGIN) {
-      setBreakPoints([]);
-      return;
-    }
-
-    // 페이지 경계에서 잘리면 안 되는 요소들
-    const breakables = docEl.querySelectorAll('[data-break]');
-    const docTop = docEl.getBoundingClientRect().top;
-    const elements = Array.from(breakables).map(el => ({
-      top: el.getBoundingClientRect().top - docTop,
-      bottom: el.getBoundingClientRect().bottom - docTop,
-      type: el.getAttribute('data-break'),
-    }));
-
-    const breaks = [];
-    let currentPageEnd = ph - BOTTOM_MARGIN;
-
-    while (currentPageEnd < contentHeight) {
-      let safeBreak = currentPageEnd;
-
-      // 경계에 걸치는 요소 찾기 → 그 요소 시작 전으로 잘림
-      for (const el of elements) {
-        if (el.top < currentPageEnd && el.bottom > currentPageEnd - BOTTOM_MARGIN) {
-          safeBreak = Math.min(safeBreak, el.top - 4);
-        }
-      }
-
-      breaks.push(safeBreak);
-      currentPageEnd = safeBreak + ph - BOTTOM_MARGIN;
-    }
-
-    setBreakPoints(breaks);
+    // 축소된 만큼 컨테이너 높이도 재계산 (스크롤 영역)
+    const docH = frameRef.current.scrollHeight;
+    containerRef.current.style.height = (docH * s + PADDING) + 'px';
   }, []);
 
   useEffect(() => {
-    calcBreaks();
-    const timer = setTimeout(calcBreaks, 150);
-    return () => clearTimeout(timer);
-  });
+    calcScale();
+    window.addEventListener('resize', calcScale);
+    return () => window.removeEventListener('resize', calcScale);
+  }, [calcScale]);
+
+  // state 변동 시에도 높이 재계산 (품목 추가/삭제 등)
+  useEffect(() => {
+    calcScale();
+  }, [state, calcScale]);
 
   // 진행도 상태 텍스트
   const filled = [receiver.name, sender.name].filter(Boolean).length
@@ -72,59 +42,24 @@ export default function PreviewPanel({ state, currentStep }) {
     filled === 2 ? '절반 완성!' :
     '거의 다 됐어요!';
 
-  const totalPages = breakPoints.length + 1;
-
   return (
     <div className="pvpanel">
       <div className="pvhdr">
         <span className="pvlabel">실시간 미리보기</span>
         <span className="pvst">{statusText}</span>
       </div>
-      <div className="pvbody">
-        {/* 숨겨진 측정용 */}
-        <div ref={measureRef} style={{ position: 'absolute', left: -9999, top: 0, width: '100%', visibility: 'hidden', pointerEvents: 'none' }}>
+      <div className="pvbody preview-frame" ref={containerRef}>
+        <div
+          className="preview-doc"
+          ref={frameRef}
+          style={{
+            width: A4_WIDTH,
+            transformOrigin: 'top left',
+            transform: `scale(${scale})`,
+          }}
+        >
           <DocTemplate state={state} currentStep={currentStep} />
         </div>
-
-        {/* 프리뷰 표시 */}
-        {totalPages <= 1 ? (
-          <div className="doc-page">
-            <DocTemplate state={state} currentStep={currentStep} />
-          </div>
-        ) : (
-          Array.from({ length: totalPages }, (_, i) => {
-            const clipStart = i === 0 ? 0 : breakPoints[i - 1];
-            const clipEnd = breakPoints[i] || undefined;
-            const visibleHeight = clipEnd ? clipEnd - clipStart : pageHeight;
-
-            return (
-              <div key={i}>
-                {i === 0 && (
-                  <>
-                    <div className="doc-page" style={{ height: visibleHeight, overflow: 'hidden' }}>
-                      <DocTemplate state={state} currentStep={currentStep} />
-                    </div>
-                    <div className="page-continue">(다음 페이지에서 계속)</div>
-                  </>
-                )}
-                {i > 0 && (
-                  <>
-                    <div className="page-separator">
-                      <span className="page-separator-label">{i + 1}페이지</span>
-                    </div>
-                    <div style={{ paddingTop: PAGE2_TOP_PAD }}>
-                      <div className="doc-page" style={{ overflow: 'hidden' }}>
-                        <div style={{ marginTop: -clipStart }}>
-                          <DocTemplate state={state} currentStep={currentStep} />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })
-        )}
       </div>
     </div>
   );
