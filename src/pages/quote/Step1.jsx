@@ -1,4 +1,4 @@
-import { fmtTel, fmtBiz } from '../../utils/formatters';
+import { fmtBiz } from '../../utils/formatters';
 
 export default function Step1({ state, updateReceiver, setQuoteTitle, onNext }) {
   const { type } = state.receiver;
@@ -99,7 +99,7 @@ export default function Step1({ state, updateReceiver, setQuoteTitle, onNext }) 
               className="finput"
               placeholder="010-0000-0000"
               value={state.receiver.phone}
-              onChange={e => updateReceiver('phone', fmtTel(e.target.value))}
+              onChange={e => updateReceiver('phone', e.target.value)}
             />
           </div>
           <div>

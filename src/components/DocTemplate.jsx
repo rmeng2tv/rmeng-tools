@@ -1,18 +1,18 @@
 import { calcTax } from '../utils/taxCalc';
 import { fmtNumber } from '../utils/formatters';
 
-const MID = ' · ';
-
-// 날짜 문자열 변환 (YYYY-MM-DD → YYYY.MM.DD)
+// 날짜 변환 (YYYY-MM-DD → YYYY. MM. DD)
 function formatDate(dateValue) {
+  let d;
   if (dateValue && dateValue.includes('-')) {
-    return dateValue.replace(/-/g, '.');
+    d = new Date(dateValue);
+  } else {
+    d = new Date();
   }
-  const now = new Date();
-  return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+  return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// 일련번호 (세션당 1회 생성)
+// 일련번호
 function generateDocNum() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -26,27 +26,18 @@ export default function DocTemplate({ state, currentStep }) {
   const { supply, vat, total, vatLabel } = calcTax(items, taxMode);
 
   const dateStr = (extras.date?.on && extras.date?.value) ? formatDate(extras.date.value) : formatDate();
-
   const blurred = currentStep < 3;
   const filledItems = items.filter(i => i.name || i.price);
   const activeMemos = memoItems.filter(m => m.on);
 
-  // 발신자 부가 라인
-  const senderLine2 = sender.ceo ? sender.ceo + ' 대표' : '';
-  const senderLine3 = [sender.bizNum, sender.tel].filter(Boolean).join(MID);
-
-  // ── 수신자 표시 분기 (개인/사업자) ──
+  // 수신자 데이터 (개인/사업자별)
   const isBiz = receiver.type === 'business';
   const receiverName = receiver.name || '—';
-  const receiverHonor = isBiz ? '귀중' : '님 귀하';
-  const receiverNameLine = `${receiverName} ${receiverHonor}`;
-  const bizPersonLine = isBiz ? [
-    receiver.ceo ? `대표 ${receiver.ceo}` : '',
-    receiver.person ? `담당 ${receiver.person} 귀하` : '',
-  ].filter(Boolean).join(MID) : '';
-  const bizNumLine = (isBiz && receiver.bizNum) ? `사업자등록번호 ${receiver.bizNum}` : '';
-  const receiverContactLine = [receiver.phone, receiver.address].filter(Boolean).join(MID);
 
+  // 발신자 데이터
+  const senderName = sender.name || '—';
+
+  // 추가 제안
   const extraMap = {
     bank: '입금 계좌',
     expiry: '견적 유효기간',
@@ -55,11 +46,24 @@ export default function DocTemplate({ state, currentStep }) {
   };
   const activeExtras = Object.entries(extras).filter(([key, v]) => v.on && key !== 'date');
 
-  // 품목 컬럼 수
+  // 컬럼 수
   const colSpan = showSpec ? 5 : 4;
 
+  // 테이블 헤더 (CRM 순서: 품목/규격/수량/단가/금액)
+  const tblHead = (
+    <thead>
+      <tr>
+        <th>품목</th>
+        {showSpec && <th>규격</th>}
+        <th className="r">수량</th>
+        <th className="r">단가</th>
+        <th className="r">금액</th>
+      </tr>
+    </thead>
+  );
+
   // 품목 행
-  const itemRows = filledItems.length === 0 ? (
+  const tblRows = filledItems.length === 0 ? (
     <tr>
       <td colSpan={colSpan} className="d-empty">품목을 입력하면 여기에 표시돼요</td>
     </tr>
@@ -68,174 +72,191 @@ export default function DocTemplate({ state, currentStep }) {
       <tr key={item.id}>
         <td>{item.name || '—'}</td>
         {showSpec && <td className="d-spec">{item.spec || '—'}</td>}
-        <td className="r">{item.price ? fmtNumber(item.price) + '원' : '—'}</td>
         <td className="r">{item.qty}</td>
-        <td className="r">{item.price ? fmtNumber(item.price * item.qty) + '원' : '—'}</td>
+        <td className="r">{item.price ? fmtNumber(item.price) : '—'}</td>
+        <td className="r">{item.price ? fmtNumber(item.price * item.qty) : '—'}</td>
       </tr>
     ))
   );
 
-  // 테이블 헤더
-  const tblHead = (
-    <thead>
-      <tr>
-        <th>품목명</th>
-        {showSpec && <th>규격</th>}
-        <th className="r">단가</th>
-        <th className="r">수량</th>
-        <th className="r">금액</th>
-      </tr>
-    </thead>
+  // 수신자 메타 블록 (스타일 prefix만 다름)
+  const receiverBlock = (prefix) => (
+    <div className={`${prefix}-mc`}>
+      <div className={`${prefix}-ml`}>수 신</div>
+      <div className={`${prefix}-mv`}>
+        {isBiz ? `${receiverName} 귀중` : `${receiverName} 님 귀하`}
+      </div>
+      {isBiz && receiver.ceo && <div className={`${prefix}-msub`}>대표자 : {receiver.ceo}</div>}
+      {isBiz && receiver.person && <div className={`${prefix}-msub`}>담당자 : {receiver.person}</div>}
+      {isBiz && receiver.bizNum && <div className={`${prefix}-msub`}>사업자등록번호 : {receiver.bizNum}</div>}
+      {receiver.phone && <div className={`${prefix}-msub`}>전화 : {receiver.phone}</div>}
+      {receiver.address && <div className={`${prefix}-msub`}>주소 : {receiver.address}</div>}
+    </div>
+  );
+
+  const senderBlock = (prefix) => (
+    <div className={`${prefix}-mc`}>
+      <div className={`${prefix}-ml`}>발 신</div>
+      <div className={`${prefix}-mv`}>{senderName}</div>
+      {sender.ceo && <div className={`${prefix}-msub`}>대표자 : {sender.ceo}</div>}
+      {sender.bizNum && <div className={`${prefix}-msub`}>사업자등록번호 : {sender.bizNum}</div>}
+    </div>
+  );
+
+  // 합계 박스
+  const totalBlock = (prefix) => (
+    <div className={`${prefix}-total`}>
+      <div className={`${prefix}-total-row`}>
+        <span>공급가액</span>
+        <span>{fmtNumber(supply)}원</span>
+      </div>
+      <div className={`${prefix}-total-row`}>
+        <span>{vatLabel}</span>
+        <span>{fmtNumber(vat)}원</span>
+      </div>
+      <div className={`${prefix}-total-row fin`}>
+        <span>합 계</span>
+        <span>{fmtNumber(total)}원</span>
+      </div>
+    </div>
   );
 
   // 메모 섹션
-  const memoSection = activeMemos.length > 0 && (
-    <div className="d-memo" data-break="memo">
-      <div className="d-memo-title">특이사항</div>
-      {activeMemos.map(m => (
-        <div className="d-memo-item" data-break="memo-item" key={m.id}>{'•'} {m.text}</div>
-      ))}
+  const memoBlock = (prefix) => activeMemos.length > 0 && (
+    <div className={`${prefix}-memo`} data-break="memo">
+      <div className={`${prefix}-memo-header`}>
+        <span>특이사항</span>
+        <span className={`${prefix}-memo-count`}>{activeMemos.length}건</span>
+      </div>
+      <ul className={`${prefix}-memo-list`}>
+        {activeMemos.map(m => (
+          <li key={m.id} data-break="memo-item">{m.text}</li>
+        ))}
+      </ul>
     </div>
   );
 
   // 추가 제안 섹션
-  const extrasSection = activeExtras.length > 0 && (
-    <div className="d-extras">
+  const extrasBlock = (prefix) => activeExtras.length > 0 && (
+    <div className={`${prefix}-extras`}>
       {activeExtras.map(([key, val]) => (
-        <div className="d-extra-box" data-break="extra" key={key}>
-          <div className="d-extra-label">{extraMap[key]}</div>
-          <div className="d-extra-val">{val.value || '입력 중...'}</div>
+        <div className={`${prefix}-extra-box`} data-break="extra" key={key}>
+          <div className={`${prefix}-extra-label`}>{extraMap[key]}</div>
+          <div className={`${prefix}-extra-val`}>{val.value || '입력 중...'}</div>
         </div>
       ))}
     </div>
   );
 
-  // 수신자/발신자 메타 (스타일별 prefix만 다름)
-  const receiverMeta = (prefix) => (
-    <div className={`${prefix}-mc`}>
-      <span className={`${prefix}-ml`}>수신</span>
-      <span className={`${prefix}-mv`}>{receiverNameLine}</span>
-      {bizPersonLine && <span className={`${prefix}-msub`}>{bizPersonLine}</span>}
-      {bizNumLine && <span className={`${prefix}-msub`}>{bizNumLine}</span>}
-      {receiverContactLine && <span className={`${prefix}-msub`}>{receiverContactLine}</span>}
+  // 푸터
+  const footerBlock = (prefix) => (
+    <div className={`${prefix}-footer`}>
+      <div className={`${prefix}-footer-left`}>
+        <div className={`${prefix}-footer-name`}>{senderName}</div>
+        {sender.tel && <div className={`${prefix}-footer-tel`}>{sender.tel}</div>}
+      </div>
     </div>
   );
 
-  const senderMeta = (prefix) => (
-    <div className={`${prefix}-mc`} style={{ textAlign: 'right' }}>
-      <span className={`${prefix}-ml`}>발신</span>
-      <span className={`${prefix}-mv`}>{sender.name || '—'}</span>
-      {senderLine2 && <span className={`${prefix}-msub`}>{senderLine2}</span>}
-      {senderLine3 && <span className={`${prefix}-msub`}>{senderLine3}</span>}
-    </div>
-  );
-
-  // ── 스타일 A: 모던 미니멀 (인디고) ──
+  // ── 스타일 A: 모던 미니멀 (인디고 #4f46e5) ──
   if (docStyle === 'a') {
     return (
       <div className="sa">
-        <div className="sa-topbar" />
-        <div className="sa-toprow">
-          <div>
+        <div className="sa-head">
+          <div className="sa-head-left">
+            <div className="sa-eyebrow">QUOTATION</div>
             <div className="sa-title">견 적 서</div>
             {quoteTitle && <div className="sa-subtitle">{quoteTitle}</div>}
-            <div className="sa-num">{docNum}</div>
           </div>
-          <div className="sa-date">{dateStr}</div>
+          <div className="sa-head-right">
+            {sender.tel && <div className="sa-tel">{sender.tel}</div>}
+            <div className="sa-date">발행일 : {dateStr}</div>
+          </div>
         </div>
+        <div className="sa-divider" />
         <div className="sa-meta">
-          {receiverMeta('sa')}
-          {senderMeta('sa')}
+          {receiverBlock('sa')}
+          {senderBlock('sa')}
         </div>
         <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
           <table className="sa-tbl">
             {tblHead}
-            <tbody>{itemRows}</tbody>
+            <tbody>{tblRows}</tbody>
           </table>
-          <div className="sa-tot-wrap">
-            <div className="sa-tot">
-              <div className="sa-tr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
-              <div className="sa-tr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
-              <div className="sa-tr fin"><span>합계</span><span>{fmtNumber(total)}원</span></div>
-            </div>
-          </div>
-          {memoSection}
-          {extrasSection}
+          <div className="sa-total-wrap">{totalBlock('sa')}</div>
+          {memoBlock('sa')}
+          {extrasBlock('sa')}
         </div>
-        <div className="sa-footer" />
+        <div className="sa-spacer" />
+        {footerBlock('sa')}
       </div>
     );
   }
 
-  // ── 스타일 B: 클래식 비즈 (블랙) ──
+  // ── 스타일 B: 클래식 비즈 (블랙 #111) ──
   if (docStyle === 'b') {
     return (
       <div className="sb">
-        <div className="sb-hblock">
-          <div className="sb-title">견 적 서</div>
-          {quoteTitle && <div className="sb-subtitle">{quoteTitle}</div>}
-          <div className="sb-num">{docNum}</div>
+        <div className="sb-head">
+          <div className="sb-head-left">
+            <div className="sb-title">견 적 서</div>
+            <div className="sb-subtitle">{quoteTitle || 'Quotation'}</div>
+          </div>
+          <div className="sb-head-right">
+            {sender.tel && <div className="sb-tel">{sender.tel}</div>}
+            <div className="sb-date">발행일 : {dateStr}</div>
+          </div>
         </div>
-        <div className="sb-toprow">
-          <div />
-          <div className="sb-date">{dateStr}</div>
-        </div>
+        <div className="sb-divider" />
         <div className="sb-meta">
-          {receiverMeta('sb')}
-          {senderMeta('sb')}
+          {receiverBlock('sb')}
+          {senderBlock('sb')}
         </div>
         <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
           <table className="sb-tbl">
             {tblHead}
-            <tbody>{itemRows}</tbody>
+            <tbody>{tblRows}</tbody>
           </table>
-          <div className="sb-tot-wrap">
-            <div className="sb-tot">
-              <div className="sb-tr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
-              <div className="sb-tr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
-              <div className="sb-tr fin"><span>합계</span><span>{fmtNumber(total)}원</span></div>
-            </div>
-          </div>
-          {memoSection}
-          {extrasSection}
+          <div className="sb-total-wrap">{totalBlock('sb')}</div>
+          {memoBlock('sb')}
+          {extrasBlock('sb')}
         </div>
-        <div className="sb-footer" />
+        <div className="sb-spacer" />
+        {footerBlock('sb')}
       </div>
     );
   }
 
-  // ── 스타일 C: 에메랄드 ──
+  // ── 스타일 C: 에메랄드 (#059669) ──
   return (
     <div className="sc">
-      <div className="sc-eyebrow">QUOTATION</div>
-      <div className="sc-toprow">
-        <div>
+      <div className="sc-head">
+        <div className="sc-head-left">
+          <div className="sc-eyebrow">QUOTATION DOCUMENT</div>
           <div className="sc-title">견 적 서</div>
           {quoteTitle && <div className="sc-subtitle">{quoteTitle}</div>}
-          <div className="sc-num">{docNum}</div>
         </div>
-        <div className="sc-date">{dateStr}</div>
+        <div className="sc-head-right">
+          {sender.tel && <div className="sc-tel">{sender.tel}</div>}
+          <div className="sc-date">발행일 : {dateStr}</div>
+        </div>
       </div>
+      <div className="sc-divider" />
       <div className="sc-meta">
-        {receiverMeta('sc')}
-        {senderMeta('sc')}
+        {receiverBlock('sc')}
+        {senderBlock('sc')}
       </div>
       <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
         <table className="sc-tbl">
           {tblHead}
-          <tbody>{itemRows}</tbody>
+          <tbody>{tblRows}</tbody>
         </table>
-        <div className="sc-tot-wrap">
-          <div className="sc-tot">
-            <div className="sc-tr"><span>공급가액</span><span>{fmtNumber(supply)}원</span></div>
-            <div className="sc-tr"><span>{vatLabel}</span><span>{fmtNumber(vat)}원</span></div>
-            <div className="sc-tr fin"><span>합계</span><span>{fmtNumber(total)}원</span></div>
-          </div>
-        </div>
-        {memoSection}
-        {extrasSection}
+        <div className="sc-total-wrap">{totalBlock('sc')}</div>
+        {memoBlock('sc')}
+        {extrasBlock('sc')}
       </div>
-      <div className="sc-footer" />
+      <div className="sc-spacer" />
+      {footerBlock('sc')}
     </div>
   );
 }
