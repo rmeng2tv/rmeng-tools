@@ -155,13 +155,13 @@ export default function QuoteWizard() {
         onBack={handleBack}
       />
 
-      {/* 캡처/인쇄용 — 다운로드 시 잠깐 표시 */}
+      {/* 캡처/인쇄용 — 다운로드 시 잠깐 표시 (A4 원본 794×1123 비율) */}
       {capturing && (
         <div className="print-target" style={{
-          position: 'fixed', top: 0, left: 0, width: 680, padding: 20,
+          position: 'fixed', top: 0, left: 0, width: 794,
           zIndex: 99999, background: '#fff',
         }}>
-          <div ref={captureRef} style={{ minHeight: 680 * (297 / 210) - 40 }}>
+          <div ref={captureRef}>
             <DocTemplate state={state} currentStep={99} />
           </div>
         </div>
