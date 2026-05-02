@@ -30,12 +30,25 @@ export default function DocTemplate({ state, currentStep }) {
   const filledItems = items.filter(i => i.name || i.price);
   const activeMemos = memoItems.filter(m => m.on);
 
-  // 수신자 데이터 (개인/사업자별)
+  // 수신자 / 발신자 표기 데이터
   const isBiz = receiver.type === 'business';
   const receiverName = receiver.name || '—';
+  const receiverHonor = isBiz ? '귀중' : '님 귀하';
+  const receiverNameLine = `${receiverName} ${receiverHonor}`;
 
-  // 발신자 데이터
+  // 수신자 info 라인 배열
+  const receiverInfoLines = [];
+  if (isBiz && receiver.ceo) receiverInfoLines.push(`대표자 : ${receiver.ceo}`);
+  if (isBiz && receiver.person) receiverInfoLines.push(`담당자 : ${receiver.person}`);
+  if (isBiz && receiver.bizNum) receiverInfoLines.push(`사업자등록번호 : ${receiver.bizNum}`);
+  if (receiver.phone) receiverInfoLines.push(`전화 : ${receiver.phone}`);
+  if (receiver.address) receiverInfoLines.push(`주소 : ${receiver.address}`);
+
+  // 발신자 info 라인
   const senderName = sender.name || '—';
+  const senderInfoLines = [];
+  if (sender.ceo) senderInfoLines.push(`대표자 : ${sender.ceo}`);
+  if (sender.bizNum) senderInfoLines.push(`사업자등록번호 : ${sender.bizNum}`);
 
   // 추가 제안
   const extraMap = {
@@ -49,7 +62,7 @@ export default function DocTemplate({ state, currentStep }) {
   // 컬럼 수
   const colSpan = showSpec ? 5 : 4;
 
-  // 테이블 헤더 (CRM 순서: 품목/규격/수량/단가/금액)
+  // 테이블 헤더 (CRM 순서: 품목 / 규격 / 수량 / 단가 / 금액)
   const tblHead = (
     <thead>
       <tr>
@@ -79,31 +92,7 @@ export default function DocTemplate({ state, currentStep }) {
     ))
   );
 
-  // 수신자 메타 블록 (스타일 prefix만 다름)
-  const receiverBlock = (prefix) => (
-    <div className={`${prefix}-mc`}>
-      <div className={`${prefix}-ml`}>수 신</div>
-      <div className={`${prefix}-mv`}>
-        {isBiz ? `${receiverName} 귀중` : `${receiverName} 님 귀하`}
-      </div>
-      {isBiz && receiver.ceo && <div className={`${prefix}-msub`}>대표자 : {receiver.ceo}</div>}
-      {isBiz && receiver.person && <div className={`${prefix}-msub`}>담당자 : {receiver.person}</div>}
-      {isBiz && receiver.bizNum && <div className={`${prefix}-msub`}>사업자등록번호 : {receiver.bizNum}</div>}
-      {receiver.phone && <div className={`${prefix}-msub`}>전화 : {receiver.phone}</div>}
-      {receiver.address && <div className={`${prefix}-msub`}>주소 : {receiver.address}</div>}
-    </div>
-  );
-
-  const senderBlock = (prefix) => (
-    <div className={`${prefix}-mc`}>
-      <div className={`${prefix}-ml`}>발 신</div>
-      <div className={`${prefix}-mv`}>{senderName}</div>
-      {sender.ceo && <div className={`${prefix}-msub`}>대표자 : {sender.ceo}</div>}
-      {sender.bizNum && <div className={`${prefix}-msub`}>사업자등록번호 : {sender.bizNum}</div>}
-    </div>
-  );
-
-  // 합계 박스
+  // 합계
   const totalBlock = (prefix) => (
     <div className={`${prefix}-total`}>
       <div className={`${prefix}-total-row`}>
@@ -121,18 +110,66 @@ export default function DocTemplate({ state, currentStep }) {
     </div>
   );
 
-  // 메모 섹션
+  // ── 수신/발신 (CRM 클래스 구조) ──
+  // Style A: party / party-role / party-name / party-info
+  // Style B: party / role / name / info
+  // Style C: party / role / name / info  (+ 'send' modifier on sender)
+  const renderParty = (prefix, kind) => {
+    const isSend = kind === 'send';
+    const name = isSend ? senderName : receiverNameLine;
+    const infoLines = isSend ? senderInfoLines : receiverInfoLines;
+    const role = isSend ? '발 신' : '수 신';
+
+    // Style A 클래스 네이밍: party-role / party-name / party-info
+    if (prefix === 'sa') {
+      return (
+        <div className={`sa-party${isSend ? ' send' : ' receive'}`}>
+          <div className="sa-party-role">{role}</div>
+          <div className="sa-party-name">{name}</div>
+          {infoLines.length > 0 && (
+            <div className="sa-party-info">
+              {infoLines.map((line, i) => <div key={i}>{line}</div>)}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Style B/C 클래스 네이밍: role / name / info
+    return (
+      <div className={`${prefix}-party${isSend ? ' send' : ' receive'}`}>
+        <div className={`${prefix}-role`}>{role}</div>
+        <div className={`${prefix}-name`}>{name}</div>
+        {infoLines.length > 0 && (
+          <div className={`${prefix}-info`}>
+            {infoLines.map((line, i) => <div key={i}>{line}</div>)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const partiesBlock = (prefix) => (
+    <div className={`${prefix}-parties`}>
+      {renderParty(prefix, 'receive')}
+      {renderParty(prefix, 'send')}
+    </div>
+  );
+
+  // ── 특이사항 (CRM 구조: head + body) ──
   const memoBlock = (prefix) => activeMemos.length > 0 && (
     <div className={`${prefix}-memo`} data-break="memo">
-      <div className={`${prefix}-memo-header`}>
-        <span>특이사항</span>
-        <span className={`${prefix}-memo-count`}>{activeMemos.length}건</span>
+      <div className={`${prefix}-memo-head`}>
+        <span className={`${prefix}-memo-title`}>특이사항</span>
+        <span className={`${prefix}-memo-cont`}>{activeMemos.length}건</span>
       </div>
-      <ul className={`${prefix}-memo-list`}>
+      <div className={`${prefix}-memo-body`}>
         {activeMemos.map(m => (
-          <li key={m.id} data-break="memo-item">{m.text}</li>
+          <div className={`${prefix}-memo-item`} data-break="memo-item" key={m.id}>
+            {m.text}
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 
@@ -151,14 +188,12 @@ export default function DocTemplate({ state, currentStep }) {
   // 푸터
   const footerBlock = (prefix) => (
     <div className={`${prefix}-footer`}>
-      <div className={`${prefix}-footer-left`}>
-        <div className={`${prefix}-footer-name`}>{senderName}</div>
-        {sender.tel && <div className={`${prefix}-footer-tel`}>{sender.tel}</div>}
-      </div>
+      <div className={`${prefix}-footer-name`}>{senderName}</div>
+      {sender.tel && <div className={`${prefix}-footer-tel`}>{sender.tel}</div>}
     </div>
   );
 
-  // ── 스타일 A: 모던 미니멀 (인디고 #4f46e5) ──
+  // ── 스타일 A: 모던 미니멀 (인디고) ──
   if (docStyle === 'a') {
     return (
       <div className="sa">
@@ -174,10 +209,7 @@ export default function DocTemplate({ state, currentStep }) {
           </div>
         </div>
         <div className="sa-divider" />
-        <div className="sa-meta">
-          {receiverBlock('sa')}
-          {senderBlock('sa')}
-        </div>
+        {partiesBlock('sa')}
         <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
           <table className="sa-tbl">
             {tblHead}
@@ -193,41 +225,40 @@ export default function DocTemplate({ state, currentStep }) {
     );
   }
 
-  // ── 스타일 B: 클래식 비즈 (블랙 #111) ──
+  // ── 스타일 B: 클래식 비즈 (블랙) ──
   if (docStyle === 'b') {
     return (
       <div className="sb">
-        <div className="sb-head">
-          <div className="sb-head-left">
-            <div className="sb-title">견 적 서</div>
-            <div className="sb-subtitle">{quoteTitle || 'Quotation'}</div>
+        <div className="sb-topbar" />
+        <div className="sb-inner">
+          <div className="sb-head">
+            <div className="sb-head-left">
+              <div className="sb-title">견 적 서</div>
+              <div className="sb-subtitle">{quoteTitle || 'Quotation'}</div>
+            </div>
+            <div className="sb-head-right">
+              {sender.tel && <div className="sb-tel">{sender.tel}</div>}
+              <div className="sb-date">발행일 : {dateStr}</div>
+            </div>
           </div>
-          <div className="sb-head-right">
-            {sender.tel && <div className="sb-tel">{sender.tel}</div>}
-            <div className="sb-date">발행일 : {dateStr}</div>
+          {partiesBlock('sb')}
+          <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
+            <table className="sb-tbl">
+              {tblHead}
+              <tbody>{tblRows}</tbody>
+            </table>
+            <div className="sb-total-wrap">{totalBlock('sb')}</div>
+            {memoBlock('sb')}
+            {extrasBlock('sb')}
           </div>
+          <div className="sb-spacer" />
+          {footerBlock('sb')}
         </div>
-        <div className="sb-divider" />
-        <div className="sb-meta">
-          {receiverBlock('sb')}
-          {senderBlock('sb')}
-        </div>
-        <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
-          <table className="sb-tbl">
-            {tblHead}
-            <tbody>{tblRows}</tbody>
-          </table>
-          <div className="sb-total-wrap">{totalBlock('sb')}</div>
-          {memoBlock('sb')}
-          {extrasBlock('sb')}
-        </div>
-        <div className="sb-spacer" />
-        {footerBlock('sb')}
       </div>
     );
   }
 
-  // ── 스타일 C: 에메랄드 (#059669) ──
+  // ── 스타일 C: 에메랄드 ──
   return (
     <div className="sc">
       <div className="sc-head">
@@ -242,10 +273,7 @@ export default function DocTemplate({ state, currentStep }) {
         </div>
       </div>
       <div className="sc-divider" />
-      <div className="sc-meta">
-        {receiverBlock('sc')}
-        {senderBlock('sc')}
-      </div>
+      {partiesBlock('sc')}
       <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
         <table className="sc-tbl">
           {tblHead}
