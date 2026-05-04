@@ -1,4 +1,4 @@
-import { calcTax } from '../utils/taxCalc';
+import { calcTax, calcItemTax } from '../utils/taxCalc';
 import { fmtNumber } from '../utils/formatters';
 
 // 날짜 변환 (YYYY-MM-DD → YYYY. MM. DD)
@@ -59,10 +59,13 @@ export default function DocTemplate({ state, currentStep }) {
   };
   const activeExtras = Object.entries(extras).filter(([key, v]) => v.on && key !== 'date');
 
-  // 컬럼 수
-  const colSpan = showSpec ? 5 : 4;
+  // hidden 모드 여부
+  const isHidden = taxMode === 'hidden';
 
-  // 테이블 헤더 (CRM 순서: 품목 / 규격 / 수량 / 단가 / 금액)
+  // 컬럼 수: 품목 + [규격] + 수량 + 단가 + [공급가액] + (세액 or 금액)
+  const colSpan = (showSpec ? 1 : 0) + (isHidden ? 4 : 5);
+
+  // 테이블 헤더 (CRM 순서: 품목 / 규격 / 수량 / 단가 / 공급가액 / 세액)
   const tblHead = (
     <thead>
       <tr>
@@ -70,7 +73,8 @@ export default function DocTemplate({ state, currentStep }) {
         {showSpec && <th>규격</th>}
         <th className="r">수량</th>
         <th className="r">단가</th>
-        <th className="r">금액</th>
+        {!isHidden && <th className="r">공급가액</th>}
+        <th className="r">{isHidden ? '금액' : '세액'}</th>
       </tr>
     </thead>
   );
@@ -81,30 +85,44 @@ export default function DocTemplate({ state, currentStep }) {
       <td colSpan={colSpan} className="d-empty">품목을 입력하면 여기에 표시돼요</td>
     </tr>
   ) : (
-    filledItems.map(item => (
-      <tr key={item.id}>
-        <td>{item.name || '—'}</td>
-        {showSpec && <td className="d-spec">{item.spec || '—'}</td>}
-        <td className="r">{item.qty}</td>
-        <td className="r">{item.price ? fmtNumber(item.price) : '—'}</td>
-        <td className="r">{item.price ? fmtNumber(item.price * item.qty) : '—'}</td>
-      </tr>
-    ))
+    filledItems.map(item => {
+      const { supply: itemSupply, tax: itemTax } = calcItemTax(item, taxMode);
+      return (
+        <tr key={item.id}>
+          <td>{item.name || '—'}</td>
+          {showSpec && <td className="d-spec">{item.spec || '—'}</td>}
+          <td className="r">{item.qty}</td>
+          <td className="r">{item.price ? fmtNumber(item.price) : '—'}</td>
+          {!isHidden && (
+            <td className="r">{item.price ? fmtNumber(itemSupply) : '—'}</td>
+          )}
+          <td className="r">
+            {isHidden
+              ? (item.price ? fmtNumber(itemSupply) : '—')
+              : (itemTax ? fmtNumber(itemTax) : '0')}
+          </td>
+        </tr>
+      );
+    })
   );
 
-  // 합계
+  // 합계 — hidden 모드에선 공급가액/부가세 행 숨기고 "금액" 한 줄만
   const totalBlock = (prefix) => (
     <div className={`${prefix}-total`}>
-      <div className={`${prefix}-total-row`}>
-        <span>공급가액</span>
-        <span>{fmtNumber(supply)}원</span>
-      </div>
-      <div className={`${prefix}-total-row`}>
-        <span>{vatLabel}</span>
-        <span>{fmtNumber(vat)}원</span>
-      </div>
+      {!isHidden && (
+        <>
+          <div className={`${prefix}-total-row`}>
+            <span>공급가액</span>
+            <span>{fmtNumber(supply)}원</span>
+          </div>
+          <div className={`${prefix}-total-row`}>
+            <span>{vatLabel}</span>
+            <span>{fmtNumber(vat)}원</span>
+          </div>
+        </>
+      )}
       <div className={`${prefix}-total-row fin`}>
-        <span>합 계</span>
+        <span>{isHidden ? '금 액' : '합 계'}</span>
         <span>{fmtNumber(total)}원</span>
       </div>
     </div>

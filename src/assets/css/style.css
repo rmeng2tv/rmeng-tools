@@ -96,14 +96,38 @@ body {
 .spec-toggle input { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
 .spec-toggle-hint { color: var(--muted); font-size: 11px; font-weight: 400; }
 
-/* ── 품목 테이블 (Step3) ── */
-.itbl { max-width: 540px; }
-.ihdr { display: grid; grid-template-columns: 1fr 88px 68px 92px 30px; gap: 8px; padding: 8px 12px; background: var(--bl); border-radius: 8px 8px 0 0; font-size: 11px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: .04em; }
-.itbl.with-spec { max-width: 640px; }
-.itbl.with-spec .ihdr { grid-template-columns: 1.4fr 110px 80px 64px 92px 30px; }
+/* ── 품목 테이블 (Step3) ──
+   기본:                품목 / 수량 / 단가 / 공급가액 / 세액 / del
+   with-spec:           품목 / 규격 / 수량 / 단가 / 공급가액 / 세액 / del
+   mode-hidden:         품목 / 수량 / 단가 / 금액 / del
+   with-spec.hidden:    품목 / 규격 / 수량 / 단가 / 금액 / del
+*/
+.itbl { max-width: 600px; }
+.itbl.with-spec { max-width: 720px; }
+.itbl.mode-hidden { max-width: 540px; }
+.itbl.with-spec.mode-hidden { max-width: 640px; }
+
+.ihdr,
+.irow { gap: 8px; padding: 8px 12px; align-items: center; }
+.ihdr { display: grid; background: var(--bl); border-radius: 8px 8px 0 0; font-size: 11px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: .04em; }
 .irows { border: 1.5px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; }
-.irow { display: grid; grid-template-columns: 1fr 88px 68px 92px 30px; gap: 8px; padding: 7px 12px; border-bottom: 1px solid var(--bl); align-items: center; background: var(--white); animation: rIn .2s ease; }
-.itbl.with-spec .irow { grid-template-columns: 1.4fr 110px 80px 64px 92px 30px; }
+.irow { display: grid; padding: 7px 12px; border-bottom: 1px solid var(--bl); background: var(--white); animation: rIn .2s ease; }
+
+/* 기본 (5컬럼 데이터 + del) */
+.itbl .ihdr,
+.itbl .irow { grid-template-columns: 1fr 56px 88px 96px 80px 28px; }
+
+/* with-spec (6컬럼 데이터 + del) */
+.itbl.with-spec .ihdr,
+.itbl.with-spec .irow { grid-template-columns: 1fr 110px 56px 88px 96px 80px 28px; }
+
+/* mode-hidden (4컬럼 데이터 + del) */
+.itbl.mode-hidden .ihdr,
+.itbl.mode-hidden .irow { grid-template-columns: 1fr 56px 88px 96px 28px; }
+
+/* with-spec.mode-hidden (5컬럼 데이터 + del) */
+.itbl.with-spec.mode-hidden .ihdr,
+.itbl.with-spec.mode-hidden .irow { grid-template-columns: 1fr 110px 56px 88px 96px 28px; }
 .irow:last-child { border-bottom: none; }
 @keyframes rIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 .iinput { border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--white); width: 100%; outline: none; transition: border-color .2s; }
@@ -424,9 +448,15 @@ body {
   .stitle { font-size: 22px; }
   .fg, .itbl, .taxbox, .preset-section, .addbtn, .custom-input-row { max-width: 100%; width: 100%; }
   .frow { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .ihdr, .irow { grid-template-columns: 1fr 80px 44px 80px 24px; gap: 4px; font-size: 12px; }
+  /* 모바일 — 5컬럼 데이터 + del (품목/수량/단가/공급가액/세액/del) */
+  .itbl .ihdr,
+  .itbl .irow { grid-template-columns: 1fr 44px 70px 76px 64px 24px; gap: 4px; font-size: 11px; }
   .itbl.with-spec .ihdr,
-  .itbl.with-spec .irow { grid-template-columns: 1.2fr 90px 70px 40px 76px 24px; gap: 3px; font-size: 11px; }
+  .itbl.with-spec .irow { grid-template-columns: 1fr 80px 40px 60px 70px 56px 24px; gap: 3px; font-size: 10px; }
+  .itbl.mode-hidden .ihdr,
+  .itbl.mode-hidden .irow { grid-template-columns: 1fr 44px 70px 80px 24px; gap: 4px; font-size: 12px; }
+  .itbl.with-spec.mode-hidden .ihdr,
+  .itbl.with-spec.mode-hidden .irow { grid-template-columns: 1fr 90px 44px 70px 76px 24px; gap: 3px; font-size: 11px; }
   .iinput { padding: 5px 6px; font-size: 12px; }
   .preset-section { max-width: 100%; }
   .pitem-row { padding: 8px 10px; gap: 8px; }

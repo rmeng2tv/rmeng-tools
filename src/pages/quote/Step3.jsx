@@ -1,4 +1,4 @@
-import { calcTax } from '../../utils/taxCalc';
+import { calcTax, calcItemTax } from '../../utils/taxCalc';
 import { fmtNumber } from '../../utils/formatters';
 
 const TAX_OPTIONS = [
@@ -20,6 +20,12 @@ const TAX_OPTIONS = [
     title: '지금 이대로가 좋아요',
     desc: '공급가액에 부가세 10% 별도 추가',
   },
+  {
+    mode: 'hidden',
+    icon: '🙈',
+    title: '부가세를 숨겨주세요',
+    desc: '견적가만 표시, 세금 항목 없이 깔끔하게',
+  },
 ];
 
 export default function Step3({
@@ -34,6 +40,12 @@ export default function Step3({
 }) {
   const { supply, vat, total, vatLabel } = calcTax(state.items, state.taxMode);
   const showSpec = state.showSpec;
+  const isHidden = state.taxMode === 'hidden';
+
+  // 테이블 모디파이어 클래스
+  const tblClasses = ['itbl'];
+  if (showSpec) tblClasses.push('with-spec');
+  if (isHidden) tblClasses.push('mode-hidden');
 
   return (
     <div className="step active">
@@ -52,18 +64,19 @@ export default function Step3({
       </label>
 
       {/* 품목 테이블 */}
-      <div className={`itbl${showSpec ? ' with-spec' : ''}`}>
+      <div className={tblClasses.join(' ')}>
         <div className="ihdr">
           <span>품목명</span>
           {showSpec && <span>규격</span>}
-          <span>단가</span>
-          <span>수량</span>
-          <span style={{ textAlign: 'right' }}>금액</span>
+          <span style={{ textAlign: 'right' }}>수량</span>
+          <span style={{ textAlign: 'right' }}>단가</span>
+          {!isHidden && <span style={{ textAlign: 'right' }}>공급가액</span>}
+          <span style={{ textAlign: 'right' }}>{isHidden ? '금액' : '세액'}</span>
           <span />
         </div>
         <div className="irows">
           {state.items.map(item => {
-            const amt = (item.price || 0) * (item.qty || 1);
+            const { supply: itemSupply, tax: itemTax } = calcItemTax(item, state.taxMode);
             return (
               <div className="irow" key={item.id}>
                 <input
@@ -82,22 +95,29 @@ export default function Step3({
                 )}
                 <input
                   className="iinput num"
-                  placeholder="0"
-                  type="number"
-                  min="0"
-                  value={item.price || ''}
-                  onChange={e => updateItem(item.id, 'price', parseInt(e.target.value) || 0)}
-                />
-                <input
-                  className="iinput num"
                   placeholder="1"
                   type="number"
                   min="1"
                   value={item.qty}
                   onChange={e => updateItem(item.id, 'qty', parseInt(e.target.value) || 1)}
                 />
+                <input
+                  className="iinput num"
+                  placeholder="0"
+                  type="number"
+                  min="0"
+                  value={item.price || ''}
+                  onChange={e => updateItem(item.id, 'price', parseInt(e.target.value) || 0)}
+                />
+                {!isHidden && (
+                  <div className="itotal">
+                    {item.price ? fmtNumber(itemSupply) + '원' : '—'}
+                  </div>
+                )}
                 <div className="itotal">
-                  {item.price ? fmtNumber(amt) + '원' : '—'}
+                  {isHidden
+                    ? (item.price ? fmtNumber(itemSupply) + '원' : '—')
+                    : (itemTax ? fmtNumber(itemTax) + '원' : '—')}
                 </div>
                 <button className="idel" onClick={() => deleteItem(item.id)}>&times;</button>
               </div>
@@ -113,18 +133,22 @@ export default function Step3({
         품목 추가
       </button>
 
-      {/* 세금 박스 */}
+      {/* 합계 박스 */}
       <div className="taxbox">
-        <div className="taxrow">
-          <span>공급가액</span>
-          <span>{fmtNumber(supply)}원</span>
-        </div>
-        <div className="taxrow">
-          <span>{vatLabel}</span>
-          <span>{fmtNumber(vat)}원</span>
-        </div>
+        {!isHidden && (
+          <>
+            <div className="taxrow">
+              <span>공급가액</span>
+              <span>{fmtNumber(supply)}원</span>
+            </div>
+            <div className="taxrow">
+              <span>{vatLabel}</span>
+              <span>{fmtNumber(vat)}원</span>
+            </div>
+          </>
+        )}
         <div className="taxrow tot">
-          <span>합계</span>
+          <span>{isHidden ? '금액' : '합계'}</span>
           <span className="amt">{fmtNumber(total)}원</span>
         </div>
 

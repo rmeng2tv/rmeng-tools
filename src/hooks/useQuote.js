@@ -67,7 +67,7 @@ function createInitialState() {
     quoteTitle: '',
     showSpec: false,
     items: [{ id: 1, name: '', spec: '', price: 0, qty: 1 }],
-    taxMode: 'normal',
+    taxMode: 'normal',  // 'normal' | 'include' | 'zero' | 'hidden'
     sender: loadJSON('qt_sender', DEFAULT_SENDER),
     memoItems: loadMemos(),
     stamp: loadJSON('qt_stamp', DEFAULT_STAMP),
