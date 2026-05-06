@@ -49,12 +49,12 @@ export default function DocTemplate({ state, currentStep }) {
   const senderInfoLines = [];
   if (sender.ceo) senderInfoLines.push(`대표자 : ${sender.ceo}`);
   if (sender.bizNum) senderInfoLines.push(`사업자등록번호 : ${sender.bizNum}`);
+  if (sender.address) senderInfoLines.push(`주소 : ${sender.address}`);
 
   // 추가 제안
   const extraMap = {
     bank: '입금 계좌',
     expiry: '견적 유효기간',
-    contact: '담당자 연락처',
     payment: '결제 조건',
   };
   const activeExtras = Object.entries(extras).filter(([key, v]) => v.on && key !== 'date');

@@ -6,7 +6,6 @@ const today = new Date().toISOString().slice(0, 10);
 const DEFAULT_SUGGESTIONS = [
   { key: 'bank', name: '입금 계좌 정보', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '국민은행 123-456-789 (홍길동)', inputType: 'text' },
   { key: 'expiry', name: '견적 유효기간', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '발행일로부터 30일', inputType: 'text' },
-  { key: 'contact', name: '담당자 직통 연락처', desc: '선택 시 견적서 하단에 별도 박스로 표시', defaultValue: '010-0000-0000', inputType: 'text' },
 ];
 
 export default function Complete({ show, state, toggleExtra, updateExtra, reorderExtras, onDownloadPDF, onDownloadImage, onBack }) {

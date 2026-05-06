@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { fmtBiz } from '../../utils/formatters';
+import { DEFAULT_MEMOS } from '../../hooks/useQuote';
 
 export default function Step4({
   state,
@@ -20,6 +21,9 @@ export default function Step4({
     addMemo(customText);
     setCustomText('');
   }
+
+  const existingTexts = state.memoItems.map(m => m.text);
+  const missingCount = DEFAULT_MEMOS.filter(d => !existingTexts.includes(d.text)).length;
 
   return (
     <div className="step active">
@@ -71,6 +75,15 @@ export default function Step4({
             />
           </div>
         </div>
+        <div>
+          <label className="flabel">주소 (선택)</label>
+          <input
+            className="finput"
+            placeholder="예) 서울시 강남구 ○○동"
+            value={state.sender.address}
+            onChange={e => updateSender('address', e.target.value)}
+          />
+        </div>
       </div>
 
       {/* 메모 프리셋 */}
@@ -94,7 +107,17 @@ export default function Step4({
             />
           ))}
         </div>
-        <button className="restore-btn" onClick={restoreDefaultMemos}>기본 문구 복원</button>
+        {missingCount > 0 && (
+          <button className="restore-btn" onClick={restoreDefaultMemos}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 0 1 15.5-6.36L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-15.5 6.36L3 16" />
+              <path d="M3 21v-5h5" />
+            </svg>
+            기본 문구 {missingCount}개 다시 불러오기
+          </button>
+        )}
         <div className="custom-input-row">
           <input
             className="custom-input"

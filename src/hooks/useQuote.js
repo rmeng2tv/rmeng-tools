@@ -16,7 +16,7 @@ function saveJSON(key, value) {
 
 // ── 기본 메모 프리셋 ──
 const MEMO_VERSION = 2; // 프리셋 변경 시 버전 올리면 자동 갱신
-const DEFAULT_MEMOS = [
+export const DEFAULT_MEMOS = [
   { id: 1, text: '부가세 별도 (세금계산서 발행 가능)', on: false },
   { id: 2, text: '계약금 50%, 잔금 50% 조건', on: false },
   { id: 3, text: '작업 완료 후 세금계산서 발행', on: false },
@@ -49,6 +49,7 @@ const DEFAULT_SENDER = {
   ceo: '',
   bizNum: '',
   tel: '',
+  address: '',
 };
 
 // ── 초기 상태 생성 (localStorage 반영) ──
@@ -68,14 +69,13 @@ function createInitialState() {
     showSpec: false,
     items: [{ id: 1, name: '', spec: '', price: 0, qty: 1 }],
     taxMode: 'normal',  // 'normal' | 'include' | 'zero' | 'hidden'
-    sender: loadJSON('qt_sender', DEFAULT_SENDER),
+    sender: { ...DEFAULT_SENDER, ...loadJSON('qt_sender', DEFAULT_SENDER) },
     memoItems: loadMemos(),
     stamp: loadJSON('qt_stamp', DEFAULT_STAMP),
     extras: {
       date: { on: false, value: '' },
-      bank: { on: false, value: '' },
+      bank: { on: false, value: loadJSON('qt_bank', '') },
       expiry: { on: false, value: '' },
-      contact: { on: false, value: '' },
       payment: { on: false, value: '' },
     },
   };
@@ -91,6 +91,7 @@ export default function useQuote() {
   useEffect(() => { saveJSON('qt_sender', state.sender); }, [state.sender]);
   useEffect(() => { saveJSON('qt_memos', state.memoItems); }, [state.memoItems]);
   useEffect(() => { saveJSON('qt_stamp', state.stamp); }, [state.stamp]);
+  useEffect(() => { saveJSON('qt_bank', state.extras.bank.value); }, [state.extras.bank.value]);
 
   // ── 수신자 ──
   const updateReceiver = useCallback((field, value) => {
