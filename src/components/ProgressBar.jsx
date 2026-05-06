@@ -1,3 +1,5 @@
+import Header from './Header';
+
 export default function ProgressBar({ currentStep }) {
   const progress = ((currentStep - 1) / 3) * 100;
 
@@ -6,9 +8,8 @@ export default function ProgressBar({ currentStep }) {
       <div className="prog-track">
         <div className="prog-fill" style={{ width: `${progress}%` }} />
       </div>
-      <header className="hdr">
-        <div className="logo">Quick<span>Quote</span></div>
-        <div className="hdots">
+      <Header>
+        <div className="hdots" aria-label={`${currentStep}/4 단계`}>
           {[1, 2, 3, 4].map(n => (
             <div
               key={n}
@@ -16,7 +17,7 @@ export default function ProgressBar({ currentStep }) {
             />
           ))}
         </div>
-      </header>
+      </Header>
     </>
   );
 }

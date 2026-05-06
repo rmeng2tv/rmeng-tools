@@ -2,27 +2,89 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QuickQuote — 무료 견적서 생성기 | 3분 만에 전문 견적서 만들기</title>
-    <meta name="description" content="회원가입 없이 무료로 견적서를 만들어보세요. 3가지 스타일, 실시간 미리보기, PDF/이미지 다운로드까지. 소규모 사업자, 프리랜서를 위한 간편한 온라인 견적서 생성기." />
+
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- 기본 SEO -->
+    <title>알맹이툴즈 — 알맹이만 쏙 뽑은 무료 비즈니스 도구</title>
+    <meta name="description" content="회원가입 없이 무료로 사용하는 비즈니스 도구 모음. 견적서·재직증명서·연봉계산기·부가세 계산기까지. 사업자와 프리랜서를 위한 가장 빠른 서류 작성 도구, 알맹이툴즈." />
+    <meta name="keywords" content="알맹이툴즈, 알맹이컴퍼니, 견적서, 견적서 만들기, 견적서 양식, 무료 견적서, 온라인 견적서, 견적서 생성기, PDF 견적서, 사업자 견적서, 프리랜서 견적서, 도장 포함 견적서, 견적서 양식 무료, 사업자 도구, 프리랜서 도구, 무료 양식, 비즈니스 서식, 재직증명서, 연봉 계산기, 부가세 계산기, 퇴직금 계산기" />
+    <meta name="author" content="알맹이컴퍼니" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://tools.rmeng2.co.kr" />
+
+    <!-- Open Graph (카카오톡, 페이스북, 슬랙 등 링크 미리보기) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="알맹이툴즈" />
+    <meta property="og:title" content="알맹이툴즈 — 알맹이만 쏙 뽑은 무료 비즈니스 도구" />
+    <meta property="og:description" content="회원가입 없이 3분 만에 견적서를 만들어보세요. 사업자·프리랜서를 위한 무료 서류 도구 모음." />
+    <meta property="og:url" content="https://tools.rmeng2.co.kr" />
+    <meta property="og:image" content="https://tools.rmeng2.co.kr/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="알맹이툴즈 — 알맹이만 쏙 뽑은 무료 비즈니스 도구" />
+    <meta property="og:locale" content="ko_KR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="알맹이툴즈 — 알맹이만 쏙 뽑은 무료 비즈니스 도구" />
+    <meta name="twitter:description" content="회원가입 없이 3분 만에 견적서를 만들어보세요. 사업자·프리랜서를 위한 무료 서류 도구 모음." />
+    <meta name="twitter:image" content="https://tools.rmeng2.co.kr/og-image.png" />
+
+    <!-- 구조화 데이터 (JSON-LD): Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "알맹이컴퍼니",
+      "alternateName": "알맹이툴즈",
+      "url": "https://tools.rmeng2.co.kr",
+      "logo": "https://tools.rmeng2.co.kr/logo-symbol.png",
+      "email": "rmeng2tv@gmail.com",
+      "telephone": "+82-10-7614-1536",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "시흥시",
+        "addressRegion": "경기도",
+        "addressCountry": "KR"
+      },
+      "taxID": "447-51-00496",
+      "sameAs": [
+        "https://rmeng2.co.kr"
+      ]
+    }
+    </script>
+
+    <!-- 구조화 데이터 (JSON-LD): WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "알맹이툴즈",
+      "url": "https://tools.rmeng2.co.kr",
+      "description": "회원가입 없이 무료로 사용하는 비즈니스 도구 모음. 견적서를 비롯한 사업자·프리랜서용 서류 작성 도구를 제공합니다.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "ko-KR",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KRW"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "알맹이컴퍼니"
+      }
+    }
+    </script>
+
+    <!-- 폰트 -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;900&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet" />
-    <meta name="keywords" content="견적서, 견적서 만들기, 견적서 양식, 무료 견적서, 온라인 견적서, 견적서 생성기, PDF 견적서, 프리랜서 견적서" />
-    <meta name="author" content="rmeng tools" />
-    <link rel="canonical" href="https://tools.rmeng2.co.kr" />
-
-    <!-- Open Graph (카카오톡, 페이스북 공유 시) -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="QuickQuote — 무료 견적서 생성기" />
-    <meta property="og:description" content="회원가입 없이 3분 만에 전문 견적서를 만들어보세요. PDF, 이미지 다운로드 무료." />
-    <meta property="og:url" content="https://tools.rmeng2.co.kr" />
-    <meta property="og:locale" content="ko_KR" />
-
-    <!-- 네이버 검색 등록용 -->
-    <meta name="robots" content="index, follow" />
-
   </head>
   <body>
     <div id="root"></div>

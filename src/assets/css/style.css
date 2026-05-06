@@ -39,9 +39,21 @@ body {
 .prog-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--border); z-index: 300; }
 .prog-fill { height: 100%; background: var(--primary); transition: width .5s cubic-bezier(.4,0,.2,1); }
 .hdr { position: fixed; top: 3px; left: 0; right: 0; height: 56px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 200; }
-.logo { font-size: 16px; font-weight: 800; color: var(--navy); letter-spacing: -.5px; }
-.logo span { color: var(--primary); }
-.hdots { display: flex; gap: 8px; align-items: center; }
+
+/* 로고 (이미지) */
+.logo-link { display: inline-flex; align-items: center; text-decoration: none; }
+.logo-img { height: 36px; width: auto; display: block; }
+
+/* 메뉴 */
+.nav-menu { display: flex; gap: 28px; align-items: center; margin-left: auto; }
+.nav-link { font-size: 14px; font-weight: 600; color: var(--text); text-decoration: none; transition: color .15s; padding: 6px 0; position: relative; }
+.nav-link:hover { color: var(--primary); }
+.nav-ext { display: inline-flex; align-items: center; gap: 3px; }
+.ext-arrow { font-size: 11px; color: var(--muted); margin-left: 1px; }
+.nav-link:hover .ext-arrow { color: var(--primary); }
+
+/* 진행 dot (위저드 전용) */
+.hdots { display: flex; gap: 8px; align-items: center; margin-left: 24px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all .3s; }
 .dot.done { background: var(--green); }
 .dot.active { background: var(--primary); transform: scale(1.4); }
@@ -443,6 +455,15 @@ body {
   .pc-only { display: none; }
   .layout { grid-template-columns: 1fr; }
   .pvpanel { display: none; }
+
+  /* 헤더 모바일 — padding 축소, 알맹이컴퍼니 메뉴 숨김 */
+  .hdr { padding: 0 16px; }
+  .logo-img { height: 30px; }
+  .nav-menu { gap: 16px; }
+  .nav-link { font-size: 13px; }
+  .nav-ext { display: none; }
+  .hdots { margin-left: 12px; gap: 6px; }
+  .dot { width: 6px; height: 6px; }
   .step { padding: 32px 20px; min-height: auto; justify-content: flex-start; padding-top: 40px; overflow-x: hidden; }
   .scards { grid-template-columns: 1fr 1fr; }
   .stitle { font-size: 22px; }
@@ -462,6 +483,48 @@ body {
   .pitem-row { padding: 8px 10px; gap: 8px; }
   .stamp-section { max-width: 100%; }
   .overlay { right: 0; }
+}
+
+/* ── 이용가이드 페이지 ── */
+.guide-page { min-height: 100vh; padding-top: 59px; background: var(--bg); }
+.guide-inner { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+
+.guide-head { margin-bottom: 56px; }
+.guide-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--primary); margin-bottom: 14px; padding: 4px 10px; background: var(--pl); border-radius: 999px; }
+.guide-title { font-size: 36px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1.2; margin-bottom: 16px; }
+.guide-lead { font-size: 15px; color: var(--sub); line-height: 1.7; }
+
+.guide-section { margin-bottom: 48px; }
+.guide-h2 { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.5px; margin-bottom: 8px; }
+.guide-desc { font-size: 14px; color: var(--sub); line-height: 1.6; margin-bottom: 24px; }
+
+.guide-steps { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.guide-step { display: flex; gap: 18px; padding: 22px 24px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; }
+.guide-step-num { flex-shrink: 0; font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--primary); padding-top: 4px; min-width: 60px; }
+.guide-step-body h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.guide-step-body p { font-size: 14px; color: var(--sub); line-height: 1.7; }
+.guide-step-body strong { color: var(--text); font-weight: 700; }
+
+.guide-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.guide-list li { padding: 14px 18px; background: var(--white); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--text); line-height: 1.6; position: relative; padding-left: 36px; }
+.guide-list li::before { content: ''; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+
+.guide-faq { display: flex; flex-direction: column; gap: 12px; }
+.guide-faq-item { padding: 20px 22px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; }
+.guide-faq-item h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.guide-faq-item p { font-size: 14px; color: var(--sub); line-height: 1.7; }
+
+.guide-cta { margin-top: 56px; text-align: center; }
+.guide-btn { display: inline-block; padding: 14px 32px; background: var(--primary); color: var(--white); border-radius: 10px; font-size: 15px; font-weight: 700; text-decoration: none; transition: background .15s, transform .15s; }
+.guide-btn:hover { background: var(--ph); transform: translateY(-1px); }
+
+@media (max-width: 800px) {
+  .guide-inner { padding: 32px 18px 56px; }
+  .guide-title { font-size: 26px; }
+  .guide-lead { font-size: 14px; }
+  .guide-h2 { font-size: 19px; }
+  .guide-step { flex-direction: column; gap: 8px; padding: 18px; }
+  .guide-step-num { padding-top: 0; }
 }
 
 /* ── 인쇄 (PDF 저장용) ── */

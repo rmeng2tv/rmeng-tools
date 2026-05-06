@@ -1,8 +1,15 @@
-import QuoteWizard from './pages/quote'
+import { Routes, Route } from 'react-router-dom';
+import QuoteWizard from './pages/quote';
+import Guide from './pages/Guide';
 
 function App() {
-  // 추후 라우팅 추가 시 Home + 각 도구 페이지로 분기
-  return <QuoteWizard />
+  return (
+    <Routes>
+      <Route path="/" element={<QuoteWizard />} />
+      <Route path="/guide" element={<Guide />} />
+      <Route path="*" element={<QuoteWizard />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
