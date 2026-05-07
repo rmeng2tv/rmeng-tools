@@ -51,6 +51,11 @@ export default function Step2({ state, setDocStyle, onPrev, onNext }) {
         <span className="pc-only">클릭하면 오른쪽 미리보기가 바로 바뀌어요.</span>
         <span className="mo-only">마음에 드는 스타일을 골라보세요.</span>
       </div>
+      <div className="swipe-hint mo-only">
+        <span className="swipe-arrow">←</span>
+        <span>옆으로 넘기면 다른 스타일이 나와요</span>
+        <span className="swipe-arrow">→</span>
+      </div>
       <div className="scards three">
         {STYLES.map(s => (
           <div

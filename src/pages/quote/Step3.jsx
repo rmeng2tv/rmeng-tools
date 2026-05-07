@@ -79,45 +79,57 @@ export default function Step3({
             const { supply: itemSupply, tax: itemTax } = calcItemTax(item, state.taxMode);
             return (
               <div className="irow" key={item.id}>
-                <input
-                  className="iinput"
-                  placeholder="품목명"
-                  value={item.name}
-                  onChange={e => updateItem(item.id, 'name', e.target.value)}
-                />
-                {showSpec && (
+                <div className="icell c-name" data-label="품목명">
                   <input
                     className="iinput"
-                    placeholder="규격"
-                    value={item.spec || ''}
-                    onChange={e => updateItem(item.id, 'spec', e.target.value)}
+                    placeholder="품목명"
+                    value={item.name}
+                    onChange={e => updateItem(item.id, 'name', e.target.value)}
                   />
-                )}
-                <input
-                  className="iinput num"
-                  placeholder="1"
-                  type="number"
-                  min="1"
-                  value={item.qty}
-                  onChange={e => updateItem(item.id, 'qty', parseInt(e.target.value) || 1)}
-                />
-                <input
-                  className="iinput num"
-                  placeholder="0"
-                  type="number"
-                  min="0"
-                  value={item.price || ''}
-                  onChange={e => updateItem(item.id, 'price', parseInt(e.target.value) || 0)}
-                />
-                {!isHidden && (
-                  <div className="itotal">
-                    {item.price ? fmtNumber(itemSupply) + '원' : '—'}
+                </div>
+                {showSpec && (
+                  <div className="icell c-spec" data-label="규격">
+                    <input
+                      className="iinput"
+                      placeholder="규격"
+                      value={item.spec || ''}
+                      onChange={e => updateItem(item.id, 'spec', e.target.value)}
+                    />
                   </div>
                 )}
-                <div className="itotal">
-                  {isHidden
-                    ? (item.price ? fmtNumber(itemSupply) + '원' : '—')
-                    : (itemTax ? fmtNumber(itemTax) + '원' : '—')}
+                <div className="icell c-qty" data-label="수량">
+                  <input
+                    className="iinput num"
+                    placeholder="1"
+                    type="number"
+                    min="1"
+                    value={item.qty}
+                    onChange={e => updateItem(item.id, 'qty', parseInt(e.target.value) || 1)}
+                  />
+                </div>
+                <div className="icell c-price" data-label="단가">
+                  <input
+                    className="iinput num"
+                    placeholder="0"
+                    type="number"
+                    min="0"
+                    value={item.price || ''}
+                    onChange={e => updateItem(item.id, 'price', parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                {!isHidden && (
+                  <div className="icell c-supply" data-label="공급가액">
+                    <div className="itotal">
+                      {item.price ? fmtNumber(itemSupply) + '원' : '—'}
+                    </div>
+                  </div>
+                )}
+                <div className="icell c-tax" data-label={isHidden ? '금액' : '세액'}>
+                  <div className="itotal">
+                    {isHidden
+                      ? (item.price ? fmtNumber(itemSupply) + '원' : '—')
+                      : (itemTax ? fmtNumber(itemTax) + '원' : '—')}
+                  </div>
                 </div>
                 <button className="idel" onClick={() => deleteItem(item.id)}>&times;</button>
               </div>

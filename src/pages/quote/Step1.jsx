@@ -92,25 +92,23 @@ export default function Step1({ state, updateReceiver, setQuoteTitle, onNext }) 
           </div>
         )}
 
-        <div className="frow">
-          <div>
-            <label className="flabel">전화번호 (선택)</label>
-            <input
-              className="finput"
-              placeholder="010-0000-0000"
-              value={state.receiver.phone}
-              onChange={e => updateReceiver('phone', e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="flabel">주소 (선택)</label>
-            <input
-              className="finput"
-              placeholder="예) 서울시 강남구 ○○동"
-              value={state.receiver.address}
-              onChange={e => updateReceiver('address', e.target.value)}
-            />
-          </div>
+        <div>
+          <label className="flabel">전화번호 (선택)</label>
+          <input
+            className="finput"
+            placeholder="010-0000-0000"
+            value={state.receiver.phone}
+            onChange={e => updateReceiver('phone', e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="flabel">주소 (선택)</label>
+          <input
+            className="finput"
+            placeholder="예) 서울시 강남구 ○○로 123 4층"
+            value={state.receiver.address}
+            onChange={e => updateReceiver('address', e.target.value)}
+          />
         </div>
       </div>
 

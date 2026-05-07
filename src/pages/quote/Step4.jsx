@@ -68,7 +68,7 @@ export default function Step4({
             <label className="flabel">연락처</label>
             <input
               className="finput"
-              placeholder="010-0000-0000 / 1588-9695 / 02-1234-5678"
+              placeholder="010-0000-0000"
               maxLength={20}
               value={state.sender.tel}
               onChange={e => updateSender('tel', e.target.value)}
