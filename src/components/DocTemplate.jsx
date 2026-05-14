@@ -1,3 +1,4 @@
+import { useRef, useState, useLayoutEffect } from 'react';
 import { calcTax, calcItemTax } from '../utils/taxCalc';
 import { fmtNumber } from '../utils/formatters';
 
@@ -21,6 +22,117 @@ function generateDocNum() {
 }
 const docNum = generateDocNum();
 
+// ── 페이지 분할 — 픽셀 실측 기반 ──
+// A4 카드 안쪽 높이 (.sa는 height:1123, padding 56 상하 → 1011)
+const PAGE_INNER_H = 1011;
+// 하단 안전 여백: 빡빡하면 다음 페이지로. 단 빈 공간 많이 남으면 끼워 넣기.
+const SAFETY_MARGIN = 24;
+const USABLE_H = PAGE_INNER_H - SAFETY_MARGIN;
+
+// 측정 영역에서 각 마커의 누적 높이를 측정
+// 두 인접 마커의 offsetTop 차이 = 그 영역의 점유 높이 (margin 자동 포함)
+function measureBlocks(root) {
+  if (!root) return null;
+  const m = (sel) => root.querySelector(`[data-mh="${sel}"]`);
+  const head = m('head');
+  const parties = m('parties');
+  const tblHead = m('tblhead');
+  const total = m('total');
+  const memo = m('memo');
+  const extras = m('extras');
+  const footer = m('footer');
+  const tail = m('tail'); // 끝 마커 (마지막 영역 높이 측정용)
+
+  if (!head || !tblHead || !tail) return null;
+
+  const headH = (parties ? parties.offsetTop : tblHead.offsetTop) - head.offsetTop;
+  const partiesH = parties ? (tblHead.offsetTop - parties.offsetTop) : 0;
+
+  const rowEls = [...root.querySelectorAll('[data-mh="row"]')];
+  const firstRow = rowEls[0];
+  const tblHeadH = (firstRow?.offsetTop ?? total?.offsetTop ?? footer?.offsetTop ?? tail.offsetTop) - tblHead.offsetTop;
+
+  const rowHs = rowEls.map((el, i) => {
+    const next = rowEls[i + 1] ?? total ?? memo ?? extras ?? footer ?? tail;
+    return next.offsetTop - el.offsetTop;
+  });
+
+  const totalH = total
+    ? (memo?.offsetTop ?? extras?.offsetTop ?? footer?.offsetTop ?? tail.offsetTop) - total.offsetTop
+    : 0;
+  const memoH = memo
+    ? (extras?.offsetTop ?? footer?.offsetTop ?? tail.offsetTop) - memo.offsetTop
+    : 0;
+  const extrasH = extras
+    ? (footer?.offsetTop ?? tail.offsetTop) - extras.offsetTop
+    : 0;
+  const footerH = footer ? tail.offsetTop - footer.offsetTop : 0;
+
+  return { headH, partiesH, tblHeadH, rowHs, totalH, memoH, extrasH, footerH };
+}
+
+// 측정 결과로 페이지 메타 배열 생성
+function splitToPages(meas, itemList) {
+  if (!meas) return null;
+  const { headH, partiesH, tblHeadH, rowHs, totalH, memoH, extrasH, footerH } = meas;
+  const tailH = totalH + memoH + extrasH + footerH;
+
+  // 빈 케이스 — 1페이지에 다 들어감
+  if (rowHs.length === 0) {
+    return [{ items: [], showReceiver: true, showTotalBlock: true, isLast: true }];
+  }
+
+  const pages = [];
+  let curItems = [];
+  let curUsed = headH + partiesH + tblHeadH; // 1페이지: 수신/발신 포함
+  let isFirstPage = true;
+
+  for (let i = 0; i < itemList.length; i++) {
+    const rowH = rowHs[i] ?? 50;
+    if (curUsed + rowH > USABLE_H && curItems.length > 0) {
+      // 페이지 마감
+      pages.push({
+        items: curItems,
+        showReceiver: isFirstPage,
+        showTotalBlock: false,
+        isLast: false,
+      });
+      curItems = [];
+      curUsed = tblHeadH; // 새 페이지: 헤더/수신·발신 없음 (옵션 B)
+      isFirstPage = false;
+    }
+    curItems.push(itemList[i]);
+    curUsed += rowH;
+  }
+
+  // 마지막 품목 페이지에 합계+메모+extras+푸터 들어가는지
+  if (curUsed + tailH <= USABLE_H) {
+    // 같은 페이지에 끝
+    pages.push({
+      items: curItems,
+      showReceiver: isFirstPage,
+      showTotalBlock: true,
+      isLast: true,
+    });
+  } else {
+    // 한 페이지 더 필요
+    pages.push({
+      items: curItems,
+      showReceiver: isFirstPage,
+      showTotalBlock: false,
+      isLast: false,
+    });
+    pages.push({
+      items: [],
+      showReceiver: false,
+      showTotalBlock: true,
+      isLast: true,
+    });
+  }
+
+  return pages;
+}
+
 export default function DocTemplate({ state, currentStep }) {
   const { receiver, docStyle, quoteTitle, showSpec, items, taxMode, sender, memoItems, extras } = state;
   const { supply, vat, total, vatLabel } = calcTax(items, taxMode);
@@ -29,6 +141,16 @@ export default function DocTemplate({ state, currentStep }) {
   const blurred = currentStep < 3;
   const filledItems = items.filter(i => i.name || i.price);
   const activeMemos = memoItems.filter(m => m.on);
+
+  // 픽셀 실측 → 페이지 분할 (스타일 A 전용 — B/C는 다음 단계에서 동일 패턴 적용)
+  const measureRefA = useRef(null);
+  const [pagesA, setPagesA] = useState(null);
+  useLayoutEffect(() => {
+    if (docStyle !== 'a') return;
+    const meas = measureBlocks(measureRefA.current);
+    setPagesA(splitToPages(meas, filledItems));
+    // state, currentStep 변경 시 자동 재측정 — 의존성 배열에 state 통째로
+  }, [state, currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 수신자 / 발신자 표기 데이터
   const isBiz = receiver.type === 'business';
@@ -66,7 +188,7 @@ export default function DocTemplate({ state, currentStep }) {
   const colSpan = (showSpec ? 1 : 0) + (isHidden ? 4 : 5);
 
   // 테이블 헤더 (CRM 순서: 품목 / 규격 / 수량 / 단가 / 공급가액 / 세액)
-  const tblHead = (
+  const renderTblHead = () => (
     <thead>
       <tr>
         <th>품목</th>
@@ -79,16 +201,19 @@ export default function DocTemplate({ state, currentStep }) {
     </thead>
   );
 
-  // 품목 행
-  const tblRows = filledItems.length === 0 ? (
-    <tr>
-      <td colSpan={colSpan} className="d-empty">품목을 입력하면 여기에 표시돼요</td>
-    </tr>
-  ) : (
-    filledItems.map(item => {
+  // 품목 행 — 전체 품목 0개일 때만 안내 메시지, 그 외엔 페이지에 할당된 행만 렌더
+  const renderTblRows = (pageItems) => {
+    if (filledItems.length === 0) {
+      return (
+        <tr>
+          <td colSpan={colSpan} className="d-empty">품목을 입력하면 여기에 표시돼요</td>
+        </tr>
+      );
+    }
+    return pageItems.map(item => {
       const { supply: itemSupply, tax: itemTax } = calcItemTax(item, taxMode);
       return (
-        <tr key={item.id}>
+        <tr key={item.id} data-mh="row">
           <td>{item.name || '—'}</td>
           {showSpec && <td className="d-spec">{item.spec || '—'}</td>}
           <td className="r">{item.qty}</td>
@@ -103,8 +228,8 @@ export default function DocTemplate({ state, currentStep }) {
           </td>
         </tr>
       );
-    })
-  );
+    });
+  };
 
   // 합계 — hidden 모드에선 공급가액/부가세 행 숨기고 "금액" 한 줄만
   const totalBlock = (prefix) => (
@@ -211,10 +336,10 @@ export default function DocTemplate({ state, currentStep }) {
     </div>
   );
 
-  // ── 스타일 A: 모던 미니멀 (인디고) ──
+  // ── 스타일 A: 모던 미니멀 (인디고) — 픽셀 실측 기반 페이지 분할 ──
   if (docStyle === 'a') {
-    return (
-      <div className="sa">
+    const renderSaHead = () => (
+      <>
         <div className="sa-head">
           <div className="sa-head-left">
             <div className="sa-eyebrow">QUOTATION</div>
@@ -227,19 +352,75 @@ export default function DocTemplate({ state, currentStep }) {
           </div>
         </div>
         <div className="sa-divider" />
-        {partiesBlock('sa')}
-        <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
-          <table className="sa-tbl">
-            {tblHead}
-            <tbody>{tblRows}</tbody>
-          </table>
-          <div className="sa-total-wrap">{totalBlock('sa')}</div>
-          {memoBlock('sa')}
-          {extrasBlock('sa')}
+      </>
+    );
+
+    // 측정 영역: 한 덩어리로 모든 콘텐츠 그려서 픽셀 실측
+    // 분할 결과와 같은 컴포넌트/CSS 사용 → 측정값 정확
+    const measureLayer = (
+      <div ref={measureRefA} style={{
+        position: 'absolute', left: -9999, top: 0,
+        width: 794, visibility: 'hidden', pointerEvents: 'none',
+      }}>
+        <div className="sa" style={{ height: 'auto', display: 'block' }}>
+          <div data-mh="head">{renderSaHead()}</div>
+          <div data-mh="parties">{partiesBlock('sa')}</div>
+          <div className="d-bwrap clear">
+            <table className="sa-tbl">
+              <thead data-mh="tblhead">
+                <tr>
+                  <th>품목</th>
+                  {showSpec && <th>규격</th>}
+                  <th className="r">수량</th>
+                  <th className="r">단가</th>
+                  {!isHidden && <th className="r">공급가액</th>}
+                  <th className="r">{isHidden ? '금액' : '세액'}</th>
+                </tr>
+              </thead>
+              <tbody>{renderTblRows(filledItems)}</tbody>
+            </table>
+            <div data-mh="total"><div className="sa-total-wrap">{totalBlock('sa')}</div></div>
+            {activeMemos.length > 0 && <div data-mh="memo">{memoBlock('sa')}</div>}
+            {activeExtras.length > 0 && <div data-mh="extras">{extrasBlock('sa')}</div>}
+          </div>
+          <div data-mh="footer">{footerBlock('sa')}</div>
+          <div data-mh="tail" style={{ height: 0 }} />
         </div>
-        <div className="sa-spacer" />
-        {footerBlock('sa')}
       </div>
+    );
+
+    return (
+      <>
+        {measureLayer}
+        {pagesA && pagesA.map((page, pIdx) => (
+          <div className="sa" key={pIdx}>
+            {page.showReceiver && (
+              <>
+                {renderSaHead()}
+                {partiesBlock('sa')}
+              </>
+            )}
+            <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
+              <table className="sa-tbl">
+                {renderTblHead()}
+                <tbody>{renderTblRows(page.items)}</tbody>
+              </table>
+              {page.showTotalBlock && (
+                <>
+                  <div className="sa-total-wrap">{totalBlock('sa')}</div>
+                  {memoBlock('sa')}
+                  {extrasBlock('sa')}
+                </>
+              )}
+            </div>
+            <div className="sa-spacer" />
+            {page.isLast && footerBlock('sa')}
+            {pagesA.length > 1 && (
+              <div className="sa-pageno">{pIdx + 1} / {pagesA.length}</div>
+            )}
+          </div>
+        ))}
+      </>
     );
   }
 
@@ -262,8 +443,8 @@ export default function DocTemplate({ state, currentStep }) {
           {partiesBlock('sb')}
           <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
             <table className="sb-tbl">
-              {tblHead}
-              <tbody>{tblRows}</tbody>
+              {renderTblHead()}
+              <tbody>{renderTblRows(filledItems)}</tbody>
             </table>
             <div className="sb-total-wrap">{totalBlock('sb')}</div>
             {memoBlock('sb')}
@@ -294,8 +475,8 @@ export default function DocTemplate({ state, currentStep }) {
       {partiesBlock('sc')}
       <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
         <table className="sc-tbl">
-          {tblHead}
-          <tbody>{tblRows}</tbody>
+          {renderTblHead()}
+          <tbody>{renderTblRows(filledItems)}</tbody>
         </table>
         <div className="sc-total-wrap">{totalBlock('sc')}</div>
         {memoBlock('sc')}

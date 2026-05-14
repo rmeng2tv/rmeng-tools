@@ -61,6 +61,24 @@ body {
 /* ── 레이아웃 ── */
 .layout { display: grid; grid-template-columns: 1fr 400px; min-height: 100vh; padding-top: 67px; }
 
+/* ── TrustBar (빨간 박스 자리, 폼 위쪽 가로 신뢰 카운터) ── */
+.trustbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  margin: 24px 60px 0 12%;
+  padding: 20px 32px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.tb-item { text-align: center; flex: 1; }
+.tb-num { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; line-height: 1.2; }
+.tb-label { font-size: 12px; color: var(--sub); margin-top: 4px; font-weight: 500; }
+.tb-divider { width: 1px; height: 32px; background: var(--border); }
+
 /* ── 스텝 공통 ── */
 .step { display: none; flex-direction: column; justify-content: center; min-height: calc(100vh - 67px); padding: 40px 60px; padding-left: 12%; animation: sIn .3s ease; }
 .step.active { display: flex; }
@@ -263,7 +281,7 @@ body {
 /* ══════════════════════════════════════════
    스타일 A: 모던 미니멀 (인디고 #4f46e5)
    ══════════════════════════════════════════ */
-.sa { padding: 56px 64px; height: 1123px; display: flex; flex-direction: column; background: #fff; font-family: 'IBM Plex Sans KR', 'Noto Sans KR', 'Pretendard', sans-serif; font-size: 13px; color: var(--text); }
+.sa { position: relative; padding: 56px 64px; height: 1123px; display: flex; flex-direction: column; background: #fff; font-family: 'IBM Plex Sans KR', 'Noto Sans KR', 'Pretendard', sans-serif; font-size: 13px; color: var(--text); }
 .sa-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; gap: 24px; }
 .sa-head-left { flex: 1; min-width: 0; }
 .sa-eyebrow { font-size: 12px; font-weight: 700; color: #4f46e5; letter-spacing: .18em; margin-bottom: 10px; }
@@ -316,6 +334,24 @@ body {
 .sa-footer { padding-top: 18px; border-top: 1px solid #ebebeb; }
 .sa-footer-name { font-size: 11px; color: #777; font-weight: 500; letter-spacing: .04em; }
 .sa-footer-tel { font-size: 10px; color: #999; margin-top: 3px; }
+.sa-pageno { position: absolute; right: 24px; bottom: 16px; font-size: 11px; color: #b0b0b0; letter-spacing: .08em; font-family: 'IBM Plex Sans KR', 'Noto Sans KR', 'Pretendard', sans-serif; }
+
+/* 미리보기 안에서 페이지 카드 사이 간격 + 점선 구분선 (캡처 시엔 .preview-doc 셀렉터 안 걸려서 영향 없음) */
+.preview-doc .sa + .sa,
+.preview-doc .sb + .sb,
+.preview-doc .sc + .sc { margin-top: 28px; }
+
+.preview-doc .sa + .sa::before,
+.preview-doc .sb + .sb::before,
+.preview-doc .sc + .sc::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: 0;
+  right: 0;
+  border-top: 1.5px dashed #b0b0b0;
+  pointer-events: none;
+}
 
 /* ══════════════════════════════════════════
    스타일 B: 클래식 비즈 (블랙 #111)
@@ -485,6 +521,12 @@ body {
   .hdots { margin-left: 12px; gap: 6px; }
   .dot { width: 6px; height: 6px; }
   .step { padding: 32px 20px; min-height: auto; justify-content: flex-start; padding-top: 40px; overflow-x: hidden; }
+
+  /* TrustBar 모바일 — 여백 축소, 폰트 축소 */
+  .trustbar { margin: 16px; padding: 14px 12px; gap: 8px; border-radius: 10px; }
+  .tb-num { font-size: 15px; letter-spacing: -0.3px; }
+  .tb-label { font-size: 10px; margin-top: 2px; }
+  .tb-divider { height: 24px; }
   .stitle { font-size: 22px; }
   .fg, .itbl, .taxbox, .preset-section, .addbtn, .custom-input-row { max-width: 100%; width: 100%; }
   .frow { grid-template-columns: 1fr 1fr; gap: 8px; }

@@ -21,25 +21,35 @@ async function captureElement(element) {
   return canvas;
 }
 
+// .sa/.sb/.sc 카드 = 분할 알고리즘이 만든 페이지 단위.
+// measureLayer는 left: -9999로 화면 밖에 있으므로 boundingClientRect로 걸러냄.
+function findPageCards(element) {
+  const all = element.querySelectorAll('.sa, .sb, .sc');
+  return Array.from(all).filter(card => card.getBoundingClientRect().left >= 0);
+}
+
 export async function downloadPDF(element, receiverName) {
   try {
-    const canvas = await captureElement(element);
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pageHeight = 297;
+    const cards = findPageCards(element);
+    if (cards.length === 0) {
+      alert('PDF 생성 오류: 견적서 카드를 찾을 수 없습니다.');
+      return;
+    }
 
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const A4_W = 210;
+    const A4_H = 297;
 
-    let position = 0;
-    let remaining = imgHeight;
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-
-    while (remaining > pageHeight) {
-      remaining -= pageHeight;
-      position -= pageHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    for (let i = 0; i < cards.length; i++) {
+      const canvas = await html2canvas(cards[i], {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, A4_H);
     }
 
     pdf.save(makeFileName(receiverName, 'pdf'));
