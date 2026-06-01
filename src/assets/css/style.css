@@ -60,24 +60,30 @@ body {
 
 /* ── 레이아웃 ── */
 .layout { display: grid; grid-template-columns: 1fr 400px; min-height: 100vh; padding-top: 67px; }
+.content-col { position: relative; }
 
-/* ── TrustBar (빨간 박스 자리, 폼 위쪽 가로 신뢰 카운터) ── */
+/* ── TrustBar (제목 우측 가로 신뢰 카운터) ── */
 .trustbar {
+  position: absolute;
+  top: 150px;
+  right: 40px;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 48px;
-  margin: 24px 60px 0 12%;
-  padding: 20px 32px;
+  justify-content: space-around;
+  gap: 8px;
+  width: clamp(380px, 44%, 560px);
+  padding: 20px 16px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  z-index: 1;
 }
 .tb-item { text-align: center; flex: 1; }
-.tb-num { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; line-height: 1.2; }
-.tb-label { font-size: 12px; color: var(--sub); margin-top: 4px; font-weight: 500; }
-.tb-divider { width: 1px; height: 32px; background: var(--border); }
+.tb-num { font-size: 24px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; line-height: 1.2; }
+.tb-label { font-size: 12px; color: var(--sub); margin-top: 6px; font-weight: 500; line-height: 1.4; }
+.tb-divider { width: 1px; height: 38px; background: var(--border); flex: none; }
 
 /* ── 스텝 공통 ── */
 .step { display: none; flex-direction: column; justify-content: center; min-height: calc(100vh - 67px); padding: 40px 60px; padding-left: 12%; animation: sIn .3s ease; }
@@ -521,12 +527,6 @@ body {
   .hdots { margin-left: 12px; gap: 6px; }
   .dot { width: 6px; height: 6px; }
   .step { padding: 32px 20px; min-height: auto; justify-content: flex-start; padding-top: 40px; overflow-x: hidden; }
-
-  /* TrustBar 모바일 — 여백 축소, 폰트 축소 */
-  .trustbar { margin: 16px; padding: 14px 12px; gap: 8px; border-radius: 10px; }
-  .tb-num { font-size: 15px; letter-spacing: -0.3px; }
-  .tb-label { font-size: 10px; margin-top: 2px; }
-  .tb-divider { height: 24px; }
   .stitle { font-size: 22px; }
   .fg, .itbl, .taxbox, .preset-section, .addbtn, .custom-input-row { max-width: 100%; width: 100%; }
   .frow { grid-template-columns: 1fr 1fr; gap: 8px; }

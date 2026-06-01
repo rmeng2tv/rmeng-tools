@@ -84,8 +84,7 @@ export default function QuoteWizard() {
       <ProgressBar currentStep={completed ? 5 : currentStep} />
 
       <div className="layout">
-        <div>
-          <TrustBar />
+        <div className="content-col">
           {currentStep === 1 && (
             <Step1
               state={state}
@@ -128,6 +127,8 @@ export default function QuoteWizard() {
               onFinish={handleFinish}
             />
           )}
+
+          {!isMobile && <TrustBar />}
         </div>
 
         {!isMobile && (
