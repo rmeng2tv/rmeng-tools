@@ -239,17 +239,23 @@ Step 4 발신자 정보 + 메모 + 도장
 
 ---
 
-## 11. 배포 방법 (FastComet)
+## 11. 배포 방법 (FastComet) — 자동 배포
 
-```bash
-# 1. 빌드
-npm run build
+> **"배포해줘" = master 브랜치에 git push.** 그게 전부다. 수동 FTP 업로드 아님.
 
-# 2. /dist 폴더 내용을 FTP로 업로드
-#    업로드 경로: public_html/tools/ (서브도메인 루트)
-
-# 3. .htaccess 파일 필수 (React 라우팅)
 ```
+1. 변경사항 커밋 → master 브랜치에 push
+2. GitHub Actions가 자동으로:
+   - npm ci && npm run build
+   - cp .htaccess dist/
+   - dist/ 폴더를 FastComet에 FTP 업로드
+3. 약 25초 후 tools.rmeng2.co.kr 반영 (캐시 있으면 Ctrl+F5)
+```
+
+- 워크플로 파일: `.github/workflows/deploy.yml` (push: branches [master] 트리거)
+- FTP 접속 정보는 GitHub Secrets에 저장 (FTP_HOST / FTP_USER / FTP_PASS) — 코드에 없음
+- 배포 상태 확인: `gh run list --branch master --limit 3`
+- 즉, 로컬에서 `npm run build` 직접 할 필요 없음 (Actions가 클라우드에서 빌드)
 
 **.htaccess 내용**
 ```apache

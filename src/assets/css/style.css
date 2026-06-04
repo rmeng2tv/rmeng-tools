@@ -530,6 +530,8 @@ body {
   .stitle { font-size: 22px; }
   .fg, .itbl, .taxbox, .preset-section, .addbtn, .custom-input-row { max-width: 100%; width: 100%; }
   .frow { grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* 좁은 화면에서 2칸 입력이 최소폭 양보하고 줄어들도록 (오른쪽 칸 잘림 방지) */
+  .frow > * { min-width: 0; }
 
   /* ── Step 2: 스타일 카드 가로 스크롤 + peek effect ── */
   .scards.three {
@@ -567,6 +569,10 @@ body {
     background: var(--white);
   }
   .itbl.mode-hidden .irow { grid-template-columns: 1fr 1fr 1fr; }
+  /* 규격 켰을 때: 품목명·규격은 한 줄 전체, 나머지만 칸 분할.
+     PC용 with-spec 규칙(우선순위 높음)을 모바일에서 같은 우선순위로 덮어씀. */
+  .itbl.with-spec .irow { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .itbl.with-spec.mode-hidden .irow { grid-template-columns: 1fr 1fr 1fr; }
 
   .itbl .icell { display: block; min-width: 0; }
   .itbl .icell::before {
