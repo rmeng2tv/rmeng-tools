@@ -650,13 +650,29 @@ body {
 .guide-btn { display: inline-block; padding: 14px 32px; background: var(--primary); color: var(--white); border-radius: 10px; font-size: 15px; font-weight: 700; text-decoration: none; transition: background .15s, transform .15s; }
 .guide-btn:hover { background: var(--ph); transform: translateY(-1px); }
 
+/* ── 히어로 ── */
+.guide-hero { text-align: center; margin-bottom: 56px; }
+.guide-hero .guide-tag { margin-bottom: 16px; }
+.guide-hero-title { font-size: 34px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1.25; margin-bottom: 16px; }
+.guide-hero-lead { font-size: 15px; color: var(--sub); line-height: 1.7; max-width: 540px; margin: 0 auto 28px; }
+
+/* ── 샘플 갤러리 ── */
+.sample-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; }
+.sample-card { display: block; text-decoration: none; background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: transform .15s, box-shadow .15s, border-color .15s; }
+.sample-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,.1); border-color: var(--primary); }
+.sample-stage { position: relative; width: 100%; overflow: hidden; background: #f1f5f9; }
+.sample-doc { pointer-events: none; }
+.sample-meta { padding: 16px 18px; border-top: 1px solid var(--border); }
+.sample-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.sample-desc { font-size: 13px; color: var(--sub); line-height: 1.5; margin-bottom: 10px; }
+.sample-go { font-size: 13px; font-weight: 700; color: var(--primary); }
+
 @media (max-width: 800px) {
   .guide-inner { padding: 32px 18px 56px; }
-  .guide-title { font-size: 26px; }
-  .guide-lead { font-size: 14px; }
+  .guide-hero-title { font-size: 25px; }
+  .guide-hero-lead { font-size: 14px; }
   .guide-h2 { font-size: 19px; }
-  .guide-step { flex-direction: column; gap: 8px; padding: 18px; }
-  .guide-step-num { padding-top: 0; }
+  .sample-grid { grid-template-columns: 1fr; gap: 18px; max-width: 460px; margin: 0 auto; }
 }
 
 /* ── 인쇄 (PDF 저장용) ── */

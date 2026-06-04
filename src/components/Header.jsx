@@ -9,7 +9,7 @@ export default function Header({ children }) {
       </Link>
 
       <nav className="nav-menu" aria-label="주 메뉴">
-        <Link to="/guide" className="nav-link">이용가이드</Link>
+        <Link to="/guide" className="nav-link">견적서 샘플</Link>
         <a
           href="https://rmeng2.co.kr"
           target="_blank"

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import useQuote from '../../hooks/useQuote';
 import ProgressBar from '../../components/ProgressBar';
 import PreviewPanel from '../../components/PreviewPanel';
@@ -46,6 +47,15 @@ export default function QuoteWizard() {
     updateExtra,
     resetAll,
   } = useQuote();
+
+  // 샘플 페이지(/guide)에서 /?style=b 로 들어온 경우 해당 스타일 미리 선택
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const s = searchParams.get('style');
+    if (s === 'a' || s === 'b' || s === 'c') setDocStyle(s);
+    // 진입 시 1회만 적용
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function goTo(step) {
     setCurrentStep(step);
