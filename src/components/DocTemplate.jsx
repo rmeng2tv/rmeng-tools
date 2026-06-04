@@ -72,63 +72,65 @@ function measureBlocks(root) {
 }
 
 // 측정 결과로 페이지 메타 배열 생성
+// 블록(품목행 / 합계 / 특이사항 / 추가정보 / 푸터)을 위에서부터 한 덩어리씩
+// "이 페이지에 들어가?" 검사하며 흘려보냄. 빈 공간을 최대한 채우고
+// 안 들어가는 블록만 다음 페이지로 내림.
 function splitToPages(meas, itemList) {
   if (!meas) return null;
   const { headH, partiesH, tblHeadH, rowHs, totalH, memoH, extrasH, footerH } = meas;
-  const tailH = totalH + memoH + extrasH + footerH;
 
   // 빈 케이스 — 1페이지에 다 들어감
   if (rowHs.length === 0) {
-    return [{ items: [], showReceiver: true, showTotalBlock: true, isLast: true }];
+    return [{
+      items: [], showReceiver: true, showTblHead: true,
+      showTotal: true, showMemo: true, showExtras: true,
+      showFooter: true, isLast: true,
+    }];
   }
+
+  const newPage = (opts) => ({
+    items: [], showReceiver: false, showTblHead: false,
+    showTotal: false, showMemo: false, showExtras: false,
+    showFooter: false, isLast: false, ...opts,
+  });
 
   const pages = [];
-  let curItems = [];
-  let curUsed = headH + partiesH + tblHeadH; // 1페이지: 수신/발신 포함
-  let isFirstPage = true;
+  // 1페이지: 수신/발신 + 표 머리글 포함
+  let cur = newPage({ showReceiver: true, showTblHead: true });
+  let used = headH + partiesH + tblHeadH;
 
+  // 1. 품목 행 배치
   for (let i = 0; i < itemList.length; i++) {
     const rowH = rowHs[i] ?? 50;
-    if (curUsed + rowH > USABLE_H && curItems.length > 0) {
-      // 페이지 마감
-      pages.push({
-        items: curItems,
-        showReceiver: isFirstPage,
-        showTotalBlock: false,
-        isLast: false,
-      });
-      curItems = [];
-      curUsed = tblHeadH; // 새 페이지: 헤더/수신·발신 없음 (옵션 B)
-      isFirstPage = false;
+    if (used + rowH > USABLE_H && cur.items.length > 0) {
+      pages.push(cur);
+      // 이어지는 품목 페이지: 표 머리글만 (수신/발신 없음)
+      cur = newPage({ showTblHead: true });
+      used = tblHeadH;
     }
-    curItems.push(itemList[i]);
-    curUsed += rowH;
+    cur.items.push(itemList[i]);
+    used += rowH;
   }
 
-  // 마지막 품목 페이지에 합계+메모+extras+푸터 들어가는지
-  if (curUsed + tailH <= USABLE_H) {
-    // 같은 페이지에 끝
-    pages.push({
-      items: curItems,
-      showReceiver: isFirstPage,
-      showTotalBlock: true,
-      isLast: true,
-    });
-  } else {
-    // 한 페이지 더 필요
-    pages.push({
-      items: curItems,
-      showReceiver: isFirstPage,
-      showTotalBlock: false,
-      isLast: false,
-    });
-    pages.push({
-      items: [],
-      showReceiver: false,
-      showTotalBlock: true,
-      isLast: true,
-    });
-  }
+  // 2~5. 꼬리 블록을 한 덩어리씩 배치.
+  // 다음 페이지로 넘어가면 품목 행이 없으므로 표 머리글도 숨김.
+  const placeBlock = (h, flag) => {
+    if (used + h > USABLE_H) {
+      pages.push(cur);
+      cur = newPage({}); // 품목/머리글/수신·발신 모두 없음
+      used = 0;
+    }
+    cur[flag] = true;
+    used += h;
+  };
+
+  placeBlock(totalH, 'showTotal');           // 2. 합계
+  if (memoH > 0) placeBlock(memoH, 'showMemo');     // 3. 특이사항
+  if (extrasH > 0) placeBlock(extrasH, 'showExtras'); // 4. 추가정보 (블록 통째)
+  placeBlock(footerH, 'showFooter');         // 5. 푸터
+
+  cur.isLast = true;
+  pages.push(cur);
 
   return pages;
 }
@@ -401,20 +403,20 @@ export default function DocTemplate({ state, currentStep }) {
               </>
             )}
             <div className={`d-bwrap${blurred ? ' blurred' : ' clear'}`}>
-              <table className="sa-tbl">
-                {renderTblHead()}
-                <tbody>{renderTblRows(page.items)}</tbody>
-              </table>
-              {page.showTotalBlock && (
-                <>
-                  <div className="sa-total-wrap">{totalBlock('sa')}</div>
-                  {memoBlock('sa')}
-                  {extrasBlock('sa')}
-                </>
+              {page.showTblHead && (
+                <table className="sa-tbl">
+                  {renderTblHead()}
+                  <tbody>{renderTblRows(page.items)}</tbody>
+                </table>
               )}
+              {page.showTotal && (
+                <div className="sa-total-wrap">{totalBlock('sa')}</div>
+              )}
+              {page.showMemo && memoBlock('sa')}
+              {page.showExtras && extrasBlock('sa')}
             </div>
             <div className="sa-spacer" />
-            {page.isLast && footerBlock('sa')}
+            {page.showFooter && footerBlock('sa')}
             {pagesA.length > 1 && (
               <div className="sa-pageno">{pIdx + 1} / {pagesA.length}</div>
             )}
