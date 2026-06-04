@@ -128,7 +128,8 @@ export default function QuoteWizard() {
             />
           )}
 
-          {!isMobile && <TrustBar />}
+          {/* 신뢰배너 임시 숨김 — 위치 재검토 후 복구 예정 */}
+          {/* {!isMobile && <TrustBar />} */}
         </div>
 
         {!isMobile && (
