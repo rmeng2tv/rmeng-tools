@@ -14,7 +14,8 @@ export default defineConfig({
     port: 5173,
     commands: {
       // --mode toss → 코드에서 import.meta.env.MODE === 'toss'로 토스 전용 분기
-      dev: 'vite --mode toss',
+      // --host 0.0.0.0 → IPv4에도 바인딩(adb reverse가 127.0.0.1로 접속하므로 필수)
+      dev: 'vite --mode toss --host 0.0.0.0',
       build: 'vite build --mode toss',
     },
   },

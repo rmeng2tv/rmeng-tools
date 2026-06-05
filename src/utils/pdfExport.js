@@ -1,6 +1,15 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
+// 토스 미니앱(앱인토스) 빌드 여부 — vite --mode toss 일 때 true
+// 웹 빌드에선 false로 고정되어 아래 토스 분기 코드가 번들에서 자동 제거됨
+const IS_TOSS = import.meta.env.MODE === 'toss';
+
+// data URI('data:...;base64,XXXX')에서 순수 base64 부분만 추출
+function dataUriToBase64(dataUri) {
+  return dataUri.slice(dataUri.indexOf(',') + 1);
+}
+
 function makeFileName(receiverName, ext) {
   const now = new Date();
   const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
@@ -52,7 +61,18 @@ export async function downloadPDF(element, receiverName) {
       pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, A4_H);
     }
 
-    pdf.save(makeFileName(receiverName, 'pdf'));
+    const fileName = makeFileName(receiverName, 'pdf');
+    if (IS_TOSS) {
+      // 토스 웹뷰는 브라우저 다운로드를 막으므로 네이티브 저장 API 사용
+      const { saveBase64Data } = await import('@apps-in-toss/web-framework');
+      await saveBase64Data({
+        data: dataUriToBase64(pdf.output('datauristring')),
+        fileName,
+        mimeType: 'application/pdf',
+      });
+    } else {
+      pdf.save(fileName);
+    }
   } catch (e) {
     alert('PDF 생성 오류: ' + e.message);
   }
@@ -62,11 +82,22 @@ export async function downloadImage(element, receiverName) {
   try {
     const canvas = await captureElement(element);
     const dataUrl = canvas.toDataURL('image/png');
+    const fileName = makeFileName(receiverName, 'png');
 
-    const link = document.createElement('a');
-    link.download = makeFileName(receiverName, 'png');
-    link.href = dataUrl;
-    link.click();
+    if (IS_TOSS) {
+      // 토스 웹뷰는 브라우저 다운로드를 막으므로 네이티브 저장 API 사용
+      const { saveBase64Data } = await import('@apps-in-toss/web-framework');
+      await saveBase64Data({
+        data: dataUriToBase64(dataUrl),
+        fileName,
+        mimeType: 'image/png',
+      });
+    } else {
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = dataUrl;
+      link.click();
+    }
   } catch (e) {
     alert('이미지 생성 오류: ' + e.message);
   }
