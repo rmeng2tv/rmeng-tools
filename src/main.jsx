@@ -4,9 +4,12 @@ import { BrowserRouter } from 'react-router-dom'
 import './assets/css/style.css'
 import App from './App.jsx'
 
-// 카카오톡 인앱 브라우저 감지 → 외부 브라우저로 열기
+// 토스 미니앱(앱인토스) 빌드 여부 — vite --mode toss 일 때 true
+const IS_TOSS = import.meta.env.MODE === 'toss';
+
+// 카카오톡 인앱 브라우저 감지 → 외부 브라우저로 열기 (토스 빌드에선 불필요하므로 제외)
 const ua = navigator.userAgent || '';
-if (/KAKAOTALK/i.test(ua)) {
+if (!IS_TOSS && /KAKAOTALK/i.test(ua)) {
   // 카카오톡 자체 스킴으로 외부 브라우저 열기
   window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(window.location.href);
 

@@ -5,6 +5,10 @@ dist-upload.zip
 .env.local
 *.log
 
+# 앱인토스(토스 미니앱) 빌드 부산물
+.granite/
+*.ait
+
 # Editor/IDE
 .vscode/
 .claude/
