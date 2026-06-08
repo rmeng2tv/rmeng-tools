@@ -529,9 +529,10 @@ body {
   .step { padding: 32px 20px; min-height: auto; justify-content: flex-start; padding-top: 40px; overflow-x: hidden; }
   .stitle { font-size: 22px; }
   .fg, .itbl, .taxbox, .preset-section, .addbtn, .custom-input-row { max-width: 100%; width: 100%; }
-  .frow { grid-template-columns: 1fr 1fr; gap: 8px; }
-  /* 좁은 화면에서 2칸 입력이 최소폭 양보하고 줄어들도록 (오른쪽 칸 잘림 방지) */
+  /* 2칸 입력: 트랙이 내용 최소폭에 막혀 안 줄어드는 것 방지 (minmax(0,1fr)이 정석) */
+  .frow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   .frow > * { min-width: 0; }
+  .finput { min-width: 0; }
 
   /* ── Step 2: 스타일 카드 가로 스크롤 + peek effect ── */
   .scards.three {
@@ -608,9 +609,10 @@ body {
     gap: 6px;
   }
   .preset-hint { word-break: keep-all; }
-  .pitem-row { padding: 8px 8px 8px 10px; gap: 6px; }
+  .preset-list, .pitem { max-width: 100%; }
+  .pitem-row { padding: 8px 8px 8px 10px; gap: 6px; min-width: 0; }
   .ptext-wrap { min-width: 0; flex: 1; overflow: hidden; }
-  .ptext { word-break: break-all; }
+  .ptext { word-break: break-all; overflow-wrap: anywhere; }
   .porder, .pitem-row .idel { flex-shrink: 0; }
 
   .stamp-section { max-width: 100%; }
@@ -708,4 +710,43 @@ body {
   .sa-memo, .sb-memo, .sc-memo,
   .sa-extra-box, .sb-extra-box, .sc-extra-box,
   .sa-total-wrap, .sb-total-wrap, .sc-total-wrap { page-break-inside: avoid; }
+}
+
+/* ── 사이트 푸터 ── */
+.site-footer { background: var(--navy); color: #cbd5e1; border-top: 1px solid var(--border); }
+.footer-inner { max-width: 1100px; margin: 0 auto; padding: 36px 32px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px 48px; }
+.footer-brand { display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
+.footer-name { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.3px; }
+.footer-by { font-size: 12px; color: var(--muted); }
+.footer-nav { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+.footer-link { font-size: 13px; font-weight: 600; color: #e2e8f0; text-decoration: none; transition: color .15s; }
+.footer-link:hover { color: #fff; text-decoration: underline; }
+.footer-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); margin-left: auto; text-align: right; line-height: 1.6; }
+.footer-copy { margin-top: 4px; }
+
+@media (max-width: 800px) {
+  .footer-inner { flex-direction: column; padding: 28px 20px; gap: 18px; }
+  .footer-meta { margin-left: 0; text-align: left; }
+}
+
+/* ── 법적/소개 페이지 (개인정보처리방침·이용약관·소개) ── */
+.legal-page { padding-top: 67px; min-height: 100vh; background: var(--bg); }
+.legal-inner { max-width: 760px; margin: 0 auto; padding: 48px 24px 72px; }
+.legal-title { font-size: 28px; font-weight: 800; color: var(--navy); letter-spacing: -.5px; margin-bottom: 8px; }
+.legal-updated { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.legal-lead { font-size: 15px; line-height: 1.8; color: var(--sub); background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 20px; margin-bottom: 32px; }
+.legal-section { margin-bottom: 32px; }
+.legal-section h2 { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 12px; letter-spacing: -.3px; }
+.legal-section p { font-size: 14.5px; line-height: 1.85; color: var(--text); margin-bottom: 12px; }
+.legal-section p:last-child { margin-bottom: 0; }
+.legal-section strong { color: var(--navy); font-weight: 700; }
+.legal-list { list-style: none; padding: 0; margin: 8px 0 0; }
+.legal-list li { position: relative; padding-left: 18px; font-size: 14.5px; line-height: 1.8; color: var(--text); margin-bottom: 8px; }
+.legal-list li::before { content: ''; position: absolute; left: 4px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--primary); }
+.legal-section a, .legal-inline-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+.legal-section a:hover, .legal-inline-link:hover { text-decoration: underline; }
+
+@media (max-width: 800px) {
+  .legal-inner { padding: 32px 18px 56px; }
+  .legal-title { font-size: 23px; }
 }

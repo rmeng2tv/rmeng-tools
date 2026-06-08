@@ -5,6 +5,7 @@ import ProgressBar from '../../components/ProgressBar';
 import PreviewPanel from '../../components/PreviewPanel';
 import DocTemplate from '../../components/DocTemplate';
 import TrustBar from '../../components/TrustBar';
+import Footer from '../../components/Footer';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
@@ -149,6 +150,8 @@ export default function QuoteWizard() {
           />
         )}
       </div>
+
+      <Footer />
 
       <Complete
         show={completed}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import SampleCard from '../components/SampleCard';
 import { GUIDE_SAMPLES } from './guideSamples';
 
@@ -57,6 +58,7 @@ export default function Guide() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   );
 }
