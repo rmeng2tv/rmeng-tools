@@ -47,3 +47,25 @@ if (!IS_TOSS && /KAKAOTALK/i.test(ua)) {
     </StrictMode>,
   )
 }
+
+// [임시 진단] 화면 우측을 넘치는 요소를 화면 하단 오버레이에 표시 — 원인 특정 후 제거 예정
+if (IS_TOSS) {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,.88);color:#0f0;font:11px/1.4 monospace;padding:8px;max-height:42vh;overflow:auto;white-space:pre-wrap;';
+  document.body.appendChild(box);
+  setInterval(() => {
+    const vw = document.documentElement.clientWidth;
+    const bad = [];
+    document.querySelectorAll('*').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.right > vw + 1) {
+        const cls = (typeof el.className === 'string' && el.className) || el.tagName;
+        bad.push({ cls, R: Math.round(r.right), W: Math.round(r.width) });
+      }
+    });
+    // 너비(W) 큰 순으로 정렬 → 실제로 페이지를 넓히는 요소가 위에 옴
+    bad.sort((a, b) => b.W - a.W);
+    box.textContent = `[vw=${vw}] 넘침 ${bad.length}개 (W큰순)\n`
+      + (bad.slice(0, 14).map(b => `${b.cls} R=${b.R} W=${b.W}`).join('\n') || '(없음)');
+  }, 1500);
+}
