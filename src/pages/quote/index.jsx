@@ -12,6 +12,9 @@ import Step4 from './Step4';
 import Complete from './Complete';
 import { downloadPDF, downloadImage } from '../../utils/pdfExport';
 
+// 토스 미니앱(앱인토스) 빌드 여부
+const IS_TOSS = import.meta.env.MODE === 'toss';
+
 export default function QuoteWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [completed, setCompleted] = useState(false);
@@ -57,13 +60,44 @@ export default function QuoteWizard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 뒤로가기(토스 내비바 ← / 브라우저 뒤로) → 위저드 이전 단계로 (히스토리 연동)
+  // Step1에서 뒤로가기 = 기록이 없어 미니앱/페이지 종료 (가이드 요구 충족)
+  useEffect(() => {
+    window.history.replaceState({ view: 1 }, '');
+    const onPop = (e) => {
+      const v = e.state?.view;
+      if (v === 'complete') { setCompleted(true); setCurrentStep(4); }
+      else if (typeof v === 'number') { setCompleted(false); setCurrentStep(v); }
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // 토스 내비바 ← 는 브라우저 뒤로가 아니라 graniteEvent 'backEvent'로 옴.
+  // Step2~4·완성에서만 핸들러 등록(이전 단계로 이동). Step1에선 미등록 → 토스 기본 동작(미니앱 닫기).
+  useEffect(() => {
+    if (!IS_TOSS) return;
+    if (!completed && currentStep === 1) return;
+    let unsub, cancelled = false;
+    import('@apps-in-toss/web-framework').then(({ graniteEvent }) => {
+      if (cancelled) return;
+      unsub = graniteEvent.addEventListener('backEvent', {
+        onEvent: () => window.history.back(),
+      });
+    });
+    return () => { cancelled = true; if (unsub) unsub(); };
+  }, [currentStep, completed]);
+
   function goTo(step) {
     setCurrentStep(step);
     window.scrollTo(0, 0);
+    window.history.pushState({ view: step }, '');
   }
 
   function handleFinish() {
     setCompleted(true);
+    window.history.pushState({ view: 'complete' }, '');
   }
 
   async function handleDownloadPDF() {
@@ -85,8 +119,7 @@ export default function QuoteWizard() {
   }
 
   function handleBack() {
-    setCompleted(false);
-    setCurrentStep(4);
+    window.history.back();
   }
 
   return (
@@ -107,7 +140,7 @@ export default function QuoteWizard() {
             <Step2
               state={state}
               setDocStyle={setDocStyle}
-              onPrev={() => goTo(1)}
+              onPrev={() => window.history.back()}
               onNext={() => goTo(3)}
             />
           )}
@@ -119,7 +152,7 @@ export default function QuoteWizard() {
               deleteItem={deleteItem}
               setTaxMode={setTaxMode}
               toggleShowSpec={toggleShowSpec}
-              onPrev={() => goTo(2)}
+              onPrev={() => window.history.back()}
               onNext={() => goTo(4)}
             />
           )}
@@ -133,7 +166,7 @@ export default function QuoteWizard() {
               moveMemo={moveMemo}
               addMemo={addMemo}
               restoreDefaultMemos={restoreDefaultMemos}
-              onPrev={() => goTo(3)}
+              onPrev={() => window.history.back()}
               onFinish={handleFinish}
             />
           )}

@@ -7,6 +7,13 @@ import App from './App.jsx'
 // 토스 미니앱(앱인토스) 빌드 여부 — vite --mode toss 일 때 true
 const IS_TOSS = import.meta.env.MODE === 'toss';
 
+// 토스 빌드: 자체 헤더 제거용 클래스 + 핀치 확대축소 비활성화(출시 가이드 요구)
+if (IS_TOSS) {
+  document.documentElement.classList.add('is-toss');
+  const vp = document.querySelector('meta[name="viewport"]');
+  if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+}
+
 // 카카오톡 인앱 브라우저 감지 → 외부 브라우저로 열기 (토스 빌드에선 불필요하므로 제외)
 const ua = navigator.userAgent || '';
 if (!IS_TOSS && /KAKAOTALK/i.test(ua)) {

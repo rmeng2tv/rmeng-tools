@@ -62,6 +62,10 @@ body {
 .layout { display: grid; grid-template-columns: 1fr 400px; min-height: 100vh; padding-top: 67px; }
 .content-col { position: relative; }
 
+/* 토스 빌드: 자체 헤더(64px) 숨김 → 상단 여백 축소 (토스 내비바가 앱명 표시) */
+.is-toss .hdr { display: none; }
+.is-toss .layout { padding-top: 12px; }
+
 /* ── TrustBar (제목 우측 가로 신뢰 카운터) ── */
 .trustbar {
   position: absolute;
