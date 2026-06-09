@@ -7,7 +7,7 @@ export default defineConfig({
   brand: {
     displayName: '알맹이 견적서 메이커', // 콘솔에 등록한 한국어 앱 이름
     primaryColor: '#2563eb', // 앱 대표 색상 (우리 파란 버튼색)
-    icon: '', // 콘솔에 로고 업로드 후 이미지 URL을 여기에 입력
+    icon: 'https://static.toss.im/appsintoss/48107/8e6efbeb-42ab-4664-86ad-13ff7909a73f.png', // 콘솔 업로드 로고 URL
   },
   web: {
     host: 'localhost',
