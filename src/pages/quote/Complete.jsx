@@ -39,10 +39,6 @@ export default function Complete({ show, state, toggleExtra, updateExtra, reorde
       <div className="ocard" onClick={e => e.stopPropagation()}>
         <div className="oicon">&#10003;</div>
         <div className="otitle">견적서 완성!</div>
-        <div className="odesc">
-          아래 정보를 추가하면 견적서가 더 전문적으로 보여요.<br />
-          체크한 항목은 견적서 하단 별도 섹션에 자동으로 추가돼요.
-        </div>
 
         <div className="sug-section-title">추가 정보 (선택)</div>
         <div className="sug-list">
